@@ -8,23 +8,17 @@ from simple_network.layers import ConvolutionalLayer, MaxPoolingLayer, ReluLayer
 class LiveModel(object):
 
     def __init__(self, dataset_path, log_path):
-        self.input_summary = {"img_number": 30}
+        self.input_summary = {"img_number": 64}
 
-        self.live_train = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="96x96", no_patches=5,
+        self.live_train = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="32x32", no_patches=32,
                                       patches_method='random')
-        self.live_test = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="96x96", no_patches=5,
+        self.live_test = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="32x32", no_patches=32,
                                      is_train=False, patches_method='random')
-
-        # Remove old tensor files
-        files_in_dir = os.listdir(log_path)
-        for s_file in files_in_dir:
-            os.remove(os.path.join(log_path, s_file))
-
         # Define model
-        self.net_model = NetworkParallel([96, 96, 3], metric=['mae'],
+        self.net_model = NetworkParallel([32, 32, 3], metric=['mae'],
                                          input_summary=self.input_summary, summary_path=log_path)
 
-    def build_model(self):
+    def build_model(self, learning_rate):
         self.net_model.add(ConvolutionalLayer([3, 3, 32], initializer="xavier", name='convo_layer_1_1'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1_1"))
         self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_1_1"))
@@ -68,8 +62,8 @@ class LiveModel(object):
         self.net_model.add(Flatten(name='flatten_1'))
 
         nm_node = NetworkNode(name="node_1_fc")
-        nm_node.add(FullyConnectedLayer([4608, 512], initializer="xavier", name='fully_connected_6_1_1'))
-        nm_node.add(FullyConnectedLayer([4608, 512], initializer="xavier", name='fully_connected_6_1_2'))
+        nm_node.add(FullyConnectedLayer([512, 512], initializer="xavier", name='fully_connected_6_1_1'))
+        nm_node.add(FullyConnectedLayer([512, 512], initializer="xavier", name='fully_connected_6_1_2'))
         self.net_model.add(nm_node)
 
         nm_node = NetworkNode(name="node_2_leaky")
@@ -93,16 +87,26 @@ class LiveModel(object):
         # self.net_model.add(FullyConnectedLayer([512, 1], initializer="xavier", name='fully_connected_7_1_1'))
 
         self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_loss("mae_weight", nimages=6, reshape_weights=None)
+        self.net_model.set_loss("mae_weight", nimages=9, reshape_weights=None)
+        self.build(learning_rate)
 
-    def train(self, learning_rate, batch_size):
+
+    def train(self, batch_size):
         self.net_model.train(train_iter=self.live_train, train_step=batch_size, test_iter=self.live_test,
-                             test_step=batch_size, learning_rate=learning_rate, sample_per_epoch=262, epochs=3000)
+                             test_step=batch_size, sample_per_epoch=262, epochs=3000)
+
+    def build(self, learning_rate):
+        self.net_model.build_model(learning_rate=learning_rate)
+
+    def restore_model(self):
+        self.net_model.restore()
+
 
 if __name__ == '__main__':
-    dataset_path = "/home/filip/Datasets/Live2005"
-    live_model = LiveModel(dataset_path=dataset_path, log_path="/home/filip/tensor_logs")
-    live_model.build_model()
-    live_model.train(0.0001, 30)
+    dataset_path = "/home/phoenix/Datasets/Live2005"
+    live_model = LiveModel(dataset_path=dataset_path, log_path="/home/phoenix/tensor_logs")
+    live_model.build_model(0.0001)
+#    live_model.restore_model()    
+    live_model.train(batch_size=288)
 
 
