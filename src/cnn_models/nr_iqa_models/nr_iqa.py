@@ -8,7 +8,7 @@ from simple_network.layers import ConvolutionalLayer, MaxPoolingLayer, ReluLayer
 class LiveModel(object):
 
     def __init__(self, dataset_path, log_path):
-        self.input_summary = {"img_number": 64}
+        self.input_summary = {"img_number": 96}
 
         self.live_train = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="32x32", no_patches=32,
                                       patches_method='random')
@@ -87,9 +87,8 @@ class LiveModel(object):
         # self.net_model.add(FullyConnectedLayer([512, 1], initializer="xavier", name='fully_connected_7_1_1'))
 
         self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_loss("mae_weight", nimages=9, reshape_weights=None)
+        self.net_model.set_loss("mae_weight", nimages=4, reshape_weights=None)
         self.build(learning_rate)
-
 
     def train(self, batch_size):
         self.net_model.train(train_iter=self.live_train, train_step=batch_size, test_iter=self.live_test,
@@ -103,10 +102,10 @@ class LiveModel(object):
 
 
 if __name__ == '__main__':
-    dataset_path = "/home/phoenix/Datasets/Live2005"
-    live_model = LiveModel(dataset_path=dataset_path, log_path="/home/phoenix/tensor_logs")
+    dataset_path = "/home/filip/Datasets/Live2005"
+    live_model = LiveModel(dataset_path=dataset_path, log_path="/home/filip/tensor_logs")
     live_model.build_model(0.0001)
 #    live_model.restore_model()    
-    live_model.train(batch_size=288)
+    live_model.train(batch_size=128)
 
 
