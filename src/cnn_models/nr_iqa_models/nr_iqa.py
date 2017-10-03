@@ -102,10 +102,10 @@ class LiveModel(object):
 
 
 if __name__ == '__main__':
-    dataset_path = "/home/filip/Datasets/Live2005"
-    live_model = LiveModel(dataset_path=dataset_path, log_path="/home/filip/tensor_logs")
+    dataset_path = "/home/phoenix/Datasets/Live2005"
+    live_model = LiveModel(dataset_path=dataset_path, log_path="/home/phoenix/tensor_logs")
     live_model.build_model(0.0001)
-#    live_model.restore_model()    
-    live_model.train(batch_size=128)
+    live_model.restore_model()    
+    #live_model.train(batch_size=128)
 
 
