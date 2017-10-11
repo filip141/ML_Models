@@ -82,7 +82,7 @@ class LiveModel(object):
 
     def train(self, batch_size):
         self.net_model.train(train_iter=self.live_train, train_step=batch_size, test_iter=self.live_test,
-                             test_step=batch_size, sample_per_epoch=262, epochs=3000, print_y_batch_count=True)
+                             test_step=batch_size, sample_per_epoch=262, epochs=3000)
 
     def build(self, learning_rate):
         self.net_model.build_model(learning_rate=learning_rate)
@@ -117,6 +117,6 @@ if __name__ == '__main__':
     dataset_path = "/home/phoenix/Datasets/Live2005"
     live_model = LiveModel(dataset_path=dataset_path, log_path="/home/phoenix/tensor_logs")
     live_model.build_model(0.0001)
-    live_model.restore_model()
-    print(live_model.predict(img_path))
-    # live_model.train(batch_size=128)
+    # live_model.restore_model()
+    # print(live_model.predict(img_path))
+    live_model.train(batch_size=128)
