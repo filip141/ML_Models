@@ -57,8 +57,8 @@ class LiveModel(object):
         self.net_model.add(nm_node)
 
         nm_node = NetworkNode(name="node_2_leaky")
-        nm_node.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_6_1_1"))
-        nm_node.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_6_1_2"))
+        nm_node.add(ReluLayer(name="relu_6_1_1"))
+        nm_node.add(ReluLayer(name="relu_6_1_2"))
         self.net_model.add(nm_node)
 
         nm_node = NetworkNode(name="node_3_drop")
@@ -113,7 +113,7 @@ class LiveModel(object):
 
 
 if __name__ == '__main__':
-    img_path = "/home/phoenix/Datasets/Live2005/wn/img24.bmp"
+    img_path = "/home/phoenix/Datasets/Live2005/fastfading/img74.bmp"
     dataset_path = "/home/phoenix/Datasets/Live2005"
     live_model = LiveModel(dataset_path=dataset_path, log_path="/home/phoenix/tensor_logs")
     live_model.build_model(0.0001)
