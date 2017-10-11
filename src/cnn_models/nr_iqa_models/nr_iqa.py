@@ -20,33 +20,33 @@ class LiveModel(object):
 
     def build_model(self, learning_rate):
         self.net_model.add(ConvolutionalLayer([3, 3, 32], initializer="xavier", name='convo_layer_1_1'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_1_1"))
+        self.net_model.add(ReluLayer(name="relu_1_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 32], initializer="xavier", name='convo_layer_1_2'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_1_2"))
+        self.net_model.add(ReluLayer(name="relu_1_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_1_1"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_2_1'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_2_1"))
+        self.net_model.add(ReluLayer(name="relu_2_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_2_2'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_2_2"))
+        self.net_model.add(ReluLayer(name="relu_2_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_2_1"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 128], initializer="xavier", name='convo_layer_3_1'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_3_1"))
+        self.net_model.add(ReluLayer(name="relu_3_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 128], initializer="xavier", name='convo_layer_3_2'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_3_2"))
+        self.net_model.add(ReluLayer(name="relu_3_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_3_1"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 256], initializer="xavier", name='convo_layer_4_1'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_4_1"))
+        self.net_model.add(ReluLayer(name="relu_4_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 256], initializer="xavier", name='convo_layer_4_2'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_4_2"))
+        self.net_model.add(ReluLayer(name="relu_4_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_4_1"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_5_1'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_5_1"))
+        self.net_model.add(ReluLayer(name="relu_5_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_5_2'))
-        self.net_model.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_5_2"))
+        self.net_model.add(ReluLayer(name="relu_5_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_5_1"))
 
         self.net_model.add(Flatten(name='flatten_1'))
@@ -57,8 +57,8 @@ class LiveModel(object):
         self.net_model.add(nm_node)
 
         nm_node = NetworkNode(name="node_2_leaky")
-        nm_node.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_6_1_1"))
-        nm_node.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_6_1_2"))
+        nm_node.add(ReluLayer(name="relu_6_1_1"))
+        nm_node.add(ReluLayer(name="relu_6_1_2"))
         self.net_model.add(nm_node)
 
         nm_node = NetworkNode(name="node_3_drop")
@@ -113,10 +113,10 @@ class LiveModel(object):
 
 
 if __name__ == '__main__':
-    img_path = "/home/phoenix/Datasets/Live2005/wn/img24.bmp"
+    img_path = "/home/phoenix/Datasets/Live2005/fastfading/img74.bmp"
     dataset_path = "/home/phoenix/Datasets/Live2005"
     live_model = LiveModel(dataset_path=dataset_path, log_path="/home/phoenix/tensor_logs")
     live_model.build_model(0.0001)
-    # live_model.restore_model()
-    # print(live_model.predict(img_path))
-    live_model.train(batch_size=128)
+    live_model.restore_model()
+    print(live_model.predict(img_path))
+    # live_model.train(batch_size=128)
