@@ -1,25 +1,17 @@
-import os
 from simple_network.models import NetworkModel
-from simple_network.tools.utils import CIFARDataset
 from simple_network.layers import ConvolutionalLayer, MaxPoolingLayer, ReluLayer, FullyConnectedLayer, \
-     Flatten, DropoutLayer, BatchNormalizationLayer, LeakyReluLayer
+     Flatten, DropoutLayer, BatchNormalizationLayer
 
 
-class CifarVGG16Model(object):
+class VGG16Model(object):
 
-    def __init__(self, train_path, test_path, log_path):
+    def __init__(self, input_size, output_size, log_path):
         self.input_summary = {"img_number": 30}
-
-        self.cifar_train = CIFARDataset(data_path=train_path)
-        self.cifar_test = CIFARDataset(data_path=test_path)
-
-        # Remove old tensor files
-        files_in_dir = os.listdir(log_path)
-        for s_file in files_in_dir:
-            os.remove(os.path.join(log_path, s_file))
+        self.input_size = input_size
+        self.output_size = output_size
 
         # Define model
-        self.net_model = NetworkModel([32, 32, 3], metric=["accuracy", "cross_entropy"],
+        self.net_model = NetworkModel(input_size, metric=["accuracy", "cross_entropy"],
                                       input_summary=self.input_summary, summary_path=log_path)
 
     def build_model(self):
@@ -91,26 +83,34 @@ class CifarVGG16Model(object):
         self.net_model.add(DropoutLayer(percent=0.5))
         self.net_model.add(Flatten(name='flatten_6'))
 
-        self.net_model.add(FullyConnectedLayer([512, 512], initializer="xavier", name='fully_connected_6_1'))
+        self.net_model.add(FullyConnectedLayer([2048, 512], initializer="xavier", name='fully_connected_6_1'))
         self.net_model.add(ReluLayer(name="relu_6_1"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_6_1"))
         self.net_model.add(DropoutLayer(percent=0.5))
 
-        self.net_model.add(FullyConnectedLayer([512, 10], initializer="xavier", name='fully_connected_7_1'))
+        self.net_model.add(FullyConnectedLayer([512, self.output_size], initializer="xavier",
+                                               name='fully_connected_7_1'))
         self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
         self.net_model.set_loss("cross_entropy")
 
-    def train(self, learning_rate, batch_size):
+    def train(self, train_iterator, test_iterator, learning_rate, batch_size, restore_model=False, epochs=300):
         self.net_model.build_model(learning_rate)
-        self.net_model.restore()
-        self.net_model.train(train_iter=self.cifar_train, train_step=batch_size, test_iter=self.cifar_test,
-                             test_step=batch_size, sample_per_epoch=391, epochs=300)
+        if restore_model:
+            self.net_model.restore()
+        self.net_model.train(train_iter=train_iterator, train_step=batch_size, test_iter=test_iterator,
+                             test_step=batch_size, sample_per_epoch=391, epochs=epochs)
 
 if __name__ == '__main__':
-    train_path = "/home/filip/Datasets/cifar/train"
-    test_path = "/home/filip/Datasets/cifar/test"
-    cifar_model = CifarVGG16Model(train_path=train_path, test_path=test_path, log_path="/home/filip/tensor_logs")
-    cifar_model.build_model()
-    cifar_model.train(0.001, 128)
+    from cnn_models.iterators.imagenet import DogsDataset
+    train_path = '/home/phoenix/Datasets/StanfordDogs/Images'
+    labels_path = '/home/phoenix/Datasets/StanfordDogs/Annotation'
+    class_names_path = '/home/phoenix/Datasets/StanfordDogs/class_names.txt'
+    im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
+                               train_set=True)
+    im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
+                              train_set=False)
+    im_net_model = VGG16Model(input_size=[64, 64, 3], output_size=120, log_path="/home/phoenix/tensor_logs")
+    im_net_model.build_model()
+    im_net_model.train(im_net_train, im_net_test, 0.001, 64, epochs=300)
 
 
