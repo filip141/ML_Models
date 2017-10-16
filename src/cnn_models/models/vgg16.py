@@ -16,76 +16,77 @@ class VGG16Model(object):
 
     def build_model(self):
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_1_1'))
-        self.net_model.add(ReluLayer(name="relu_1_1"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1_1"))
+        self.net_model.add(ReluLayer(name="relu_1_1"))
         self.net_model.add(DropoutLayer(percent=0.3))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_1_2'))
-        self.net_model.add(ReluLayer(name="relu_1_2"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1_2"))
+        self.net_model.add(ReluLayer(name="relu_1_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_1_2"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 128], initializer="xavier", name='convo_layer_2_1'))
-        self.net_model.add(ReluLayer(name="relu_2_1"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_2_1"))
+        self.net_model.add(ReluLayer(name="relu_2_1"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 128], initializer="xavier", name='convo_layer_2_2'))
-        self.net_model.add(ReluLayer(name="relu_2_2"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_2_2"))
+        self.net_model.add(ReluLayer(name="relu_2_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_2_2"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 256], initializer="xavier", name='convo_layer_3_1'))
-        self.net_model.add(ReluLayer(name="relu_3_1"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3_1"))
+        self.net_model.add(ReluLayer(name="relu_3_1"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 256], initializer="xavier", name='convo_layer_3_2'))
-        self.net_model.add(ReluLayer(name="relu_3_2"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3_2"))
+        self.net_model.add(ReluLayer(name="relu_3_2"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 256], initializer="xavier", name='convo_layer_3_3'))
-        self.net_model.add(ReluLayer(name="relu_3_3"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3_3"))
+        self.net_model.add(ReluLayer(name="relu_3_3"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_3_3"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_4_1'))
-        self.net_model.add(ReluLayer(name="relu_4_1"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_4_1"))
+        self.net_model.add(ReluLayer(name="relu_4_1"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_4_2'))
-        self.net_model.add(ReluLayer(name="relu_4_2"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_4_2"))
+        self.net_model.add(ReluLayer(name="relu_4_2"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_4_3'))
-        self.net_model.add(ReluLayer(name="relu_4_3"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_4_3"))
+        self.net_model.add(ReluLayer(name="relu_4_3"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_4_3"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_5_1'))
-        self.net_model.add(ReluLayer(name="relu_5_1"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_5_1"))
+        self.net_model.add(ReluLayer(name="relu_5_1"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_5_2'))
-        self.net_model.add(ReluLayer(name="relu_5_2"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_5_2"))
+        self.net_model.add(ReluLayer(name="relu_5_2"))
         self.net_model.add(DropoutLayer(percent=0.4))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 512], initializer="xavier", name='convo_layer_5_3'))
-        self.net_model.add(ReluLayer(name="relu_5_3"))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_5_3"))
+        self.net_model.add(ReluLayer(name="relu_5_3"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_5_3"))
 
         self.net_model.add(DropoutLayer(percent=0.5))
         self.net_model.add(Flatten(name='flatten_6'))
 
-        self.net_model.add(FullyConnectedLayer([2048, 512], initializer="xavier", name='fully_connected_6_1'))
-        self.net_model.add(ReluLayer(name="relu_6_1"))
+        self.net_model.add(FullyConnectedLayer([512 * (self.input_size[0] / 32.0)**2, 512],
+                                               initializer="xavier", name='fully_connected_6_1'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_6_1"))
+        self.net_model.add(ReluLayer(name="relu_6_1"))
         self.net_model.add(DropoutLayer(percent=0.5))
 
         self.net_model.add(FullyConnectedLayer([512, self.output_size], initializer="xavier",
@@ -101,16 +102,25 @@ class VGG16Model(object):
                              test_step=batch_size, sample_per_epoch=391, epochs=epochs)
 
 if __name__ == '__main__':
-    from cnn_models.iterators.imagenet import DogsDataset
-    train_path = '/home/phoenix/Datasets/StanfordDogs/Images'
-    labels_path = '/home/phoenix/Datasets/StanfordDogs/Annotation'
-    class_names_path = '/home/phoenix/Datasets/StanfordDogs/class_names.txt'
-    im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
-                               train_set=True)
-    im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
-                              train_set=False)
-    im_net_model = VGG16Model(input_size=[64, 64, 3], output_size=120, log_path="/home/phoenix/tensor_logs")
+    # from cnn_models.iterators.imagenet import DogsDataset
+    # train_path = '/home/phoenix/Datasets/StanfordDogs/Images'
+    # labels_path = '/home/phoenix/Datasets/StanfordDogs/Annotation'
+    # class_names_path = '/home/phoenix/Datasets/StanfordDogs/class_names.txt'
+    # im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
+    #                            train_set=True)
+    # im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
+    #                           train_set=False)
+    # im_net_model = VGG16Model(input_size=[64, 64, 3], output_size=120, log_path="/home/phoenix/tensor_logs")
+    # im_net_model.build_model()
+    # im_net_model.train(im_net_train, im_net_test, 0.001, 64, epochs=300)
+    from cnn_models.iterators.cifar import CIFARDataset
+    train_path = "/home/filip/Datasets/cifar/train"
+    test_path = "/home/filip/Datasets/cifar/test"
+    cifar_train = CIFARDataset(data_path=train_path, resolution="64x64")
+    cifar_test = CIFARDataset(data_path=test_path, resolution="64x64")
+
+    im_net_model = VGG16Model(input_size=[64, 64, 3], output_size=10, log_path="/home/filip/tensor_logs")
     im_net_model.build_model()
-    im_net_model.train(im_net_train, im_net_test, 0.001, 64, epochs=300)
+    im_net_model.train(cifar_train, cifar_test, 0.0001, 32, epochs=300)
 
 

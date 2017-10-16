@@ -10,5 +10,5 @@ setup(
     license='',
     author='fbach',
     author_email='',
-    description=''
+    description='', requires=['numpy', 'cv2']
 )

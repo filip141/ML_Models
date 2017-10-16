@@ -8,7 +8,7 @@ from xml.dom import minidom
 class DogsDataset(object):
 
     def __init__(self, data_path="./Images", labels_path="./Annotation", class_names="./class_names.txt",
-                 resize_img="64x64", train_set=True):
+                 resize_img="64x64", train_set=True, force_overfit=False):
         self.data_path = data_path
         self.labels_path = labels_path
         self.class_names = class_names
@@ -23,6 +23,9 @@ class DogsDataset(object):
 
         self.class_dict = dict([(x[:-1], im_idx) for im_idx, x in enumerate(open(class_names).readlines())])
         self.train_len = int(0.8 * len(self.file_list))
+
+        if force_overfit:
+            self.file_list = self.file_list[:20]
 
         if train_set:
             self.file_list = self.file_list[:self.train_len]
