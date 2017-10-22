@@ -44,32 +44,6 @@ class CIFARDataset(object):
             ds_img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
             ds_img = cv2.resize(ds_img, tuple(self.res_tuple), interpolation=cv2.INTER_AREA)
 
-            random_flip = random.randint(0, 1)
-            random_rotate = random.randint(0, 1)
-            random_transform = random.randint(0, 1)
-            random_zoom = random.randint(0, 1)
-            if random_flip == 1:
-                ds_img = cv2.flip(ds_img, 1)
-            elif random_rotate == 1:
-                angle_rot = 10
-                angle = random.randint(0, 2 * angle_rot) - angle_rot
-                image_center = tuple(np.array(ds_img.shape[:2]) / 2)
-                rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-                ds_img = cv2.warpAffine(ds_img, rot_mat, ds_img.shape[:2], flags=cv2.INTER_LINEAR)
-            elif random_transform == 1:
-                move_px = 3
-                m1 = random.randint(0, 2 * move_px) - move_px
-                m2 = random.randint(0, 2 * move_px) - move_px
-                num_rows, num_cols = ds_img.shape[:2]
-                translation_matrix = np.float32([[1, 0, m1], [0, 1, m2]])
-                ds_img = cv2.warpAffine(ds_img, translation_matrix, (num_cols, num_rows))
-            elif random_zoom == 1:
-                m1_1 = random.randint(1, 5)
-                m1_2 = random.randint(1, 5)
-                m2_1 = random.randint(1, 5)
-                m2_2 = random.randint(1, 5)
-                ds_img = cv2.resize(ds_img[m1_1:-m1_2, m2_1:-m2_2], tuple(self.res_tuple), interpolation=cv2.INTER_AREA)
-
             one_hot_labels = np.zeros((10, ))
             one_hot_labels[CIFAR10_LABELS[img_label]] = 1.0
             batch_matrix[img_idx] = (ds_img.astype('float32') - np.min(ds_img)) / \

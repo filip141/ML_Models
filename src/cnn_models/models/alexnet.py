@@ -76,22 +76,4 @@ if __name__ == '__main__':
     im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
                               train_set=False, resize_img="64x64")
     im_net_model = AlexNetModel(input_size=[64, 64, 3], output_size=10, log_path="/home/phoenix/tensor_logs")
-    # from cnn_models.iterators.imagenet import DogsDataset
-    # train_path = '/home/filip/Datasets/StanfordDogs/Images'
-    # labels_path = '/home/filip/Datasets/StanfordDogs/Annotation'
-    # class_names_path = '/home/filip/Datasets/StanfordDogs/class_names.txt'
-    # im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
-    #                            train_set=True, resize_img="64x64")
-    # im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
-    #                           train_set=False, resize_img="64x64")
-    from cnn_models.iterators.cifar import CIFARDataset
-    train_path = "/home/filip/Datasets/cifar/train"
-    test_path = "/home/filip/Datasets/cifar/test"
-    cifar_train = CIFARDataset(data_path=train_path, resolution="64x64")
-    cifar_test = CIFARDataset(data_path=test_path, resolution="64x64")
-
-    im_net_model = AlexNetModel(input_size=[64, 64, 3], output_size=10, log_path="/home/filip/tensor_logs")
-    im_net_model.build_model()
-    im_net_model.train(im_net_train, im_net_train, 0.005, 32, epochs=300)
-
 
