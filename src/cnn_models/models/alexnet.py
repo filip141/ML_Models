@@ -67,6 +67,15 @@ class AlexNetModel(object):
                              test_step=batch_size, sample_per_epoch=391, epochs=epochs)
 
 if __name__ == '__main__':
+    from cnn_models.iterators.imagenet import DogsDataset
+    train_path = '/home/phoenix/Datasets/StanfordDogs/Images'
+    labels_path = '/home/phoenix/Datasets/StanfordDogs/Annotation'
+    class_names_path = '/home/phoenix/Datasets/StanfordDogs/class_names.txt'
+    im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
+                               train_set=True, resize_img="64x64", force_overfit=True)
+    im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
+                              train_set=False, resize_img="64x64")
+    im_net_model = AlexNetModel(input_size=[64, 64, 3], output_size=10, log_path="/home/phoenix/tensor_logs")
     # from cnn_models.iterators.imagenet import DogsDataset
     # train_path = '/home/filip/Datasets/StanfordDogs/Images'
     # labels_path = '/home/filip/Datasets/StanfordDogs/Annotation'
@@ -83,6 +92,6 @@ if __name__ == '__main__':
 
     im_net_model = AlexNetModel(input_size=[64, 64, 3], output_size=10, log_path="/home/filip/tensor_logs")
     im_net_model.build_model()
-    im_net_model.train(cifar_train, cifar_test, 0.001, 32, epochs=300, restore_model=True)
+    im_net_model.train(im_net_train, im_net_train, 0.005, 32, epochs=300)
 
 
