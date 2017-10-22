@@ -80,40 +80,38 @@ class VGG16Model(object):
         self.net_model.add(ReluLayer(name="relu_6_1"))
         self.net_model.add(DropoutLayer(percent=0.5))
 
+        self.net_model.add(FullyConnectedLayer([512, 512],
+                                               initializer="xavier", name='fully_connected_7_1'))
+        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_7_1"))
+        self.net_model.add(ReluLayer(name="relu_7_1"))
+        self.net_model.add(DropoutLayer(percent=0.5))
+
         self.net_model.add(FullyConnectedLayer([512, self.output_size], initializer="xavier",
-                                               name='fully_connected_7_1'))
-        # self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_optimizer("SGD")
+                                               name='fully_connected_8_1'))
+        self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+        # self.net_model.set_optimizer("SGD")
         self.net_model.set_loss("cross_entropy")
 
     def train(self, train_iterator, test_iterator, learning_rate, batch_size, restore_model=False, epochs=300,
-              embedding_num=None):
+              embedding_num=None, early_stop=None):
         self.net_model.build_model(learning_rate)
+        if early_stop is not None:
+            early_stop = {"accuracy": early_stop}
         if restore_model:
             self.net_model.restore()
         self.net_model.train(train_iter=train_iterator, train_step=batch_size, test_iter=test_iterator,
-                             test_step=batch_size, sample_per_epoch=391, epochs=epochs, embedding_num=embedding_num)
+                             test_step=batch_size, sample_per_epoch=391, epochs=epochs, embedding_num=embedding_num,
+                             early_stop=early_stop)
 
 if __name__ == '__main__':
-    # from cnn_models.iterators.imagenet import DogsDataset
-    # train_path = '/home/filip/Datasets/StanfordDogs/Images'
-    # labels_path = '/home/filip/Datasets/StanfordDogs/Annotation'
-    # class_names_path = '/home/filip/Datasets/StanfordDogs/class_names.txt'
-    # im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
-    #                            train_set=True)
-    # im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
-    #                           train_set=False)
-    # im_net_model = VGG16Model(input_size=[64, 64, 3], output_size=120, log_path="/home/filip/tensor_logs")
-    # im_net_model.build_model()
-    # im_net_model.train(im_net_train, im_net_test, 0.0005, 64, epochs=300)
     from cnn_models.iterators.cifar import CIFARDataset
-    train_path = "/home/filip/Datasets/cifar/train"
-    test_path = "/home/filip/Datasets/cifar/test"
+    train_path = "/home/phoenix/Datasets/cifar/train"
+    test_path = "/home/phoenix/Datasets/cifar/test"
     cifar_train = CIFARDataset(data_path=train_path, resolution="32x32")
     cifar_test = CIFARDataset(data_path=test_path, resolution="32x32")
 
-    im_net_model = VGG16Model(input_size=[32, 32, 3], output_size=10, log_path="/home/filip/tensor_logs")
+    im_net_model = VGG16Model(input_size=[32, 32, 3], output_size=10, log_path="/home/phoenix/tensor_logs")
     im_net_model.build_model()
-    im_net_model.train(cifar_train, cifar_train, 0.005, 32, epochs=300, embedding_num=512)
+    im_net_model.train(cifar_train, cifar_test, 0.0001, 32, epochs=300, restore_model=True, early_stop=0.9)
 
 
