@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 from simple_network.models import NetworkParallel
 from simple_network.layers import ConvolutionalLayer, MaxPoolingLayer, ReluLayer, FullyConnectedLayer, \
      Flatten, DropoutLayer, BatchNormalizationLayer
@@ -84,6 +86,7 @@ class VGG16Model(object):
                                                name='fully_connected_7_1'))
         # self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
         self.net_model.set_optimizer("SGD")
+        # self.net_model.set_optimizer("RMSprop")
         self.net_model.set_loss("cross_entropy")
 
     def train(self, train_iterator, test_iterator, learning_rate, batch_size, restore_model=False, epochs=300,
@@ -93,6 +96,22 @@ class VGG16Model(object):
             self.net_model.restore()
         self.net_model.train(train_iter=train_iterator, train_step=batch_size, test_iter=test_iterator,
                              test_step=batch_size, sample_per_epoch=391, epochs=epochs, embedding_num=embedding_num)
+
+    def restore(self):
+        self.build_model()
+        self.net_model.build_model(0.001)
+        self.net_model.restore()
+
+    def predict(self, img_path):
+        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, tuple(self.input_size[:-1]), interpolation=cv2.INTER_AREA)
+        img_shape = img.shape
+        batch_matrix = np.zeros((1, img_shape[0], img_shape[1], img_shape[2]))
+        batch_matrix[0] = (img.astype('float32') - np.min(img)) / np.std(img)
+        eval_list = self.net_model.sess.run(self.net_model.get_last_layer_prediction(),
+                                            feed_dict={self.net_model.input_layer_placeholder: batch_matrix,
+                                                       self.net_model.is_training_placeholder: False})
+        return np.argmax(eval_list[0])
 
 if __name__ == '__main__':
     # from cnn_models.iterators.imagenet import DogsDataset
@@ -113,7 +132,8 @@ if __name__ == '__main__':
     cifar_test = CIFARDataset(data_path=test_path, resolution="32x32")
 
     im_net_model = VGG16Model(input_size=[32, 32, 3], output_size=10, log_path="/home/filip/tensor_logs")
-    im_net_model.build_model()
-    im_net_model.train(cifar_train, cifar_train, 0.005, 32, epochs=300, embedding_num=512)
+    # im_net_model.train(cifar_train, cifar_train, 0.001, 32, epochs=300)
+    im_net_model.restore()
+    print(im_net_model.predict("/home/filip/car.jpg"))
 
 

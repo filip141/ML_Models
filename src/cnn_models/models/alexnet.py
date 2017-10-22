@@ -56,7 +56,7 @@ class AlexNetModel(object):
         self.net_model.add(FullyConnectedLayer([4096, self.output_size], initializer="xavier",
                                                name='fully_connected_8_1'))
         # self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_optimizer("Momentum")
+        self.net_model.set_optimizer("SGD")
         self.net_model.set_loss("cross_entropy")
 
     def train(self, train_iterator, test_iterator, learning_rate, batch_size, restore_model=False, epochs=300):
@@ -78,11 +78,11 @@ if __name__ == '__main__':
     from cnn_models.iterators.cifar import CIFARDataset
     train_path = "/home/filip/Datasets/cifar/train"
     test_path = "/home/filip/Datasets/cifar/test"
-    cifar_train = CIFARDataset(data_path=train_path, resolution="64x64", force_overfit=True)
-    cifar_test = CIFARDataset(data_path=test_path, resolution="64x64", force_overfit=True)
+    cifar_train = CIFARDataset(data_path=train_path, resolution="64x64")
+    cifar_test = CIFARDataset(data_path=test_path, resolution="64x64")
 
     im_net_model = AlexNetModel(input_size=[64, 64, 3], output_size=10, log_path="/home/filip/tensor_logs")
     im_net_model.build_model()
-    im_net_model.train(cifar_train, cifar_train, 0.005, 52, epochs=300)
+    im_net_model.train(cifar_train, cifar_test, 0.001, 32, epochs=300, restore_model=True)
 
 
