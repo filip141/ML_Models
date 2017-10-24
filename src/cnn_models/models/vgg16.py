@@ -97,7 +97,8 @@ class VGG16Model(object):
 
     def set_optimizer(self):
         # self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_optimizer("SGD")
+        # self.net_model.set_optimizer("SGD")
+        self.net_model.set_optimizer("Momentum")
         self.net_model.set_loss("cross_entropy")
 
     def add(self, layer):
@@ -162,6 +163,6 @@ if __name__ == '__main__':
     im_net_model.add(FullyConnectedLayer([2048, 120], initializer="xavier",
                                          name='fully_connected_8_1'))
     im_net_model.set_optimizer()
-    im_net_model.train(im_net_train, im_net_test, 1e-6, 8, epochs=300, early_stop=0.9)
+    im_net_model.train(im_net_train, im_net_test, 0.0001, 16, epochs=300, early_stop=0.9)
 
 
