@@ -23,6 +23,7 @@ class DogsDataset(object):
 
         self.class_dict = dict([(x[:-1], im_idx) for im_idx, x in enumerate(open(class_names).readlines())])
         self.train_len = int(0.8 * len(self.file_list))
+        random.shuffle(self.file_list)
 
         if force_overfit:
             self.file_list = self.file_list[:20]
@@ -33,7 +34,6 @@ class DogsDataset(object):
             self.file_list = self.file_list[self.train_len:]
 
         self.position = 0
-        random.shuffle(self.file_list)
 
     def next_batch(self, number):
         first_fn = self.file_list[self.position]

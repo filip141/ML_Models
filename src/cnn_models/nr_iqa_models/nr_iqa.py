@@ -1,5 +1,5 @@
 import tensorflow as tf
-from simple_network.tools.utils import LIVEDataset, img_patch_spliter
+from cnn_models.iterators.live_dataset import LIVEDataset
 from simple_network.models import NetworkParallel, NetworkNode
 from simple_network.layers import ConvolutionalLayer, MaxPoolingLayer, ReluLayer, FullyConnectedLayer, \
      Flatten, DropoutLayer, BatchNormalizationLayer, LeakyReluLayer

@@ -9,8 +9,11 @@ CIFAR10_LABELS = {"airplane": 0, "automobile": 1, "bird": 2, "cat": 3, "deer": 4
 
 class ImageIterator(object):
 
-    def __init__(self, iterator):
+    def __init__(self, iterator, rotate=10, translate=10, max_zoom=5):
         self.iterator = iterator
+        self.rotate = rotate
+        self.max_zoom = max_zoom
+        self.translate = translate
 
     def next_batch(self, number):
         # iterate over elements
@@ -25,23 +28,23 @@ class ImageIterator(object):
             if random_flip == 1:
                 ds_img = cv2.flip(ds_img, 1)
             elif random_rotate == 1:
-                angle_rot = 10
+                angle_rot = self.rotate
                 angle = random.randint(0, 2 * angle_rot) - angle_rot
                 image_center = tuple(np.array(ds_img.shape[:2]) / 2)
                 rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
                 ds_img = cv2.warpAffine(ds_img, rot_mat, ds_img.shape[:2], flags=cv2.INTER_LINEAR)
             elif random_transform == 1:
-                move_px = 3
+                move_px = self.translate
                 m1 = random.randint(0, 2 * move_px) - move_px
                 m2 = random.randint(0, 2 * move_px) - move_px
                 num_rows, num_cols = ds_img.shape[:2]
                 translation_matrix = np.float32([[1, 0, m1], [0, 1, m2]])
                 ds_img = cv2.warpAffine(ds_img, translation_matrix, (num_cols, num_rows))
             elif random_zoom == 1:
-                m1_1 = random.randint(1, 5)
-                m1_2 = random.randint(1, 5)
-                m2_1 = random.randint(1, 5)
-                m2_2 = random.randint(1, 5)
+                m1_1 = random.randint(1, self.max_zoom)
+                m1_2 = random.randint(1, self.max_zoom)
+                m2_1 = random.randint(1, self.max_zoom)
+                m2_2 = random.randint(1, self.max_zoom)
                 ds_img = cv2.resize(ds_img[m1_1:-m1_2, m2_1:-m2_2], tuple(res_tuple), interpolation=cv2.INTER_AREA)
             batch_x[img_idx] = ds_img
         return batch_x, batch_y
