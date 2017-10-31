@@ -31,7 +31,7 @@ class CIFARDataset(object):
         batch_labels = np.zeros((number, 10))
         batch_matrix = np.zeros((number, first_img_shape[0], first_img_shape[1], first_img_shape[2]))
         first_one_hot_labels[CIFAR10_LABELS[first_label]] = 1.0
-        batch_matrix[0] = (first_img.astype('float32') - np.min(first_img)) / np.std(first_img)
+        batch_matrix[0] = (first_img.astype('float32') - np.mean(first_img)) / np.std(first_img)
         batch_labels[0] = first_one_hot_labels
         self.position += 1
         self.position = self.position if self.position < len(self.files_list) else 0
@@ -46,8 +46,7 @@ class CIFARDataset(object):
 
             one_hot_labels = np.zeros((10, ))
             one_hot_labels[CIFAR10_LABELS[img_label]] = 1.0
-            batch_matrix[img_idx] = (ds_img.astype('float32') - np.min(ds_img)) / \
-                                    (np.max(ds_img) - np.min(ds_img))
+            batch_matrix[img_idx] = (ds_img.astype('float32') - np.mean(ds_img)) / np.std(ds_img)
             batch_labels[img_idx] = one_hot_labels
             self.position += 1
             self.position = self.position if self.position < len(self.files_list) else 0

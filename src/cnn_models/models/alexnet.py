@@ -181,7 +181,7 @@ class AlexNetModel(object):
         img = cv2.resize(img, tuple(self.input_size[:-1]), interpolation=cv2.INTER_AREA)
         img_shape = img.shape
         batch_matrix = np.zeros((1, img_shape[0], img_shape[1], img_shape[2]))
-        batch_matrix[0] = (img.astype('float32') - np.min(img)) / np.std(img)
+        batch_matrix[0] = img - np.array([104., 117., 124.], dtype=np.float32)
         eval_list = self.net_model.sess.run(self.net_model.get_last_layer_prediction(),
                                             feed_dict={self.net_model.input_layer_placeholder: batch_matrix,
                                                        self.net_model.is_training_placeholder: False})
@@ -190,6 +190,7 @@ class AlexNetModel(object):
 
 if __name__ == '__main__':
     # from cnn_models.iterators.imagenet import DogsDataset
+    # from cnn_models.iterators.tools import ImageIterator
     # train_path = '/home/filip/Datasets/StanfordDogs/Images'
     # labels_path = '/home/filip/Datasets/StanfordDogs/Annotation'
     # class_names_path = '/home/filip/Datasets/StanfordDogs/class_names.txt'
@@ -197,9 +198,11 @@ if __name__ == '__main__':
     #                            train_set=True, resize_img="227x227")
     # im_net_test = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
     #                           train_set=False, resize_img="227x227")
+    # im_net_train = ImageIterator(im_net_train)
+    # im_net_test = ImageIterator(im_net_test)
     im_net_model = AlexNetModel(input_size=[227, 227, 3], output_size=1000, log_path="/home/filip/tensor_logs")
     im_net_model.build_model(true_build=True)
     im_net_model.load_initial_weights("/home/filip/Weights/bvlc_alexnet.npy", ALEXNET_MAPPING_TWO_STREAMS)
-    print(im_net_model.predict("/home/filip/zebra.jpg"))
-    # im_net_model.train(im_net_train, im_net_test, 0.001, 16, epochs=300)
+    print(im_net_model.predict("/home/filip/PycharmProjects/finetune_alexnet_with_tensorflow/images/zebra.jpeg"))
+    # im_net_model.train(im_net_train, im_net_test, 0.001, 16, epochs=300, model_build=False)
 

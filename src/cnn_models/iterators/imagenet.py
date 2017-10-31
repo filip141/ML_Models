@@ -49,7 +49,7 @@ class DogsDataset(object):
         batch_labels = np.zeros((number, len(self.class_dict)))
         batch_matrix = np.zeros((number, self.res_tuple[0], self.res_tuple[1], 3))
         first_one_hot_labels[self.class_dict[first_label]] = 1.0
-        batch_matrix[0] = (first_img_res.astype('float32') - np.min(first_img_res)) / np.std(first_img_res)
+        batch_matrix[0] = (first_img_res.astype('float32') - np.mean(first_img_res)) / np.std(first_img_res)
         batch_labels[0] = first_one_hot_labels
         self.position += 1
         self.position = self.position if self.position < len(self.file_list) else 0
@@ -77,9 +77,7 @@ class DogsDataset(object):
 
             one_hot_labels = np.zeros((len(self.class_dict),))
             one_hot_labels[self.class_dict[img_label]] = 1.0
-            batch_matrix[img_idx] = (img_res.astype('float32') - np.min(img_res)) / \
-                                    (np.max(img_res) - np.min(img_res))
-            batch_labels[img_idx] = one_hot_labels
+            batch_matrix[img_idx] = (img_res.astype('float32') - np.mean(img_res)) / np.std(img_res)
             self.position += 1
             self.position = self.position if self.position < len(self.file_list) else 0
         return batch_matrix, batch_labels
