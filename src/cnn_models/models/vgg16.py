@@ -157,7 +157,7 @@ class VGG16Model(object):
         self.net_model = NetworkParallel(input_size, metric=metrics, input_summary=self.input_summary,
                                          summary_path=log_path)
 
-    def build_model(self, model_classifier=True, true_build=False, optimizer=True):
+    def build_model(self, model_classifier=True, optimizer=True):
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_1_1'))
         self.net_model.add(ReluLayer(name="relu_1_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_1_2'))
@@ -195,8 +195,9 @@ class VGG16Model(object):
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="same", name="pooling_5_3"))
         if model_classifier:
             self.add_model_classifier(optimizer)
-        if true_build:
-            self.net_model.build_model(0.001)
+
+    def model_compile(self, learning_rate):
+        self.net_model.build_model(learning_rate)
 
     def add_model_classifier(self, optimizer):
         self.net_model.add(Flatten(name='flatten_6'))
@@ -222,10 +223,8 @@ class VGG16Model(object):
     def add(self, layer):
         self.net_model.add(layer)
 
-    def train(self, train_iterator, test_iterator, learning_rate, batch_size, restore_model=False, epochs=300,
-              embedding_num=None, early_stop=None, model_build=True):
-        if model_build:
-            self.net_model.build_model(learning_rate)
+    def train(self, train_iterator, test_iterator, batch_size, restore_model=False, epochs=300,
+              embedding_num=None, early_stop=None):
         if early_stop is not None:
             early_stop = {"accuracy": early_stop}
         if restore_model:
@@ -235,8 +234,6 @@ class VGG16Model(object):
                              early_stop=early_stop)
 
     def restore(self):
-        self.build_model()
-        self.net_model.build_model(0.001)
         self.net_model.restore()
 
     def predict(self, img_path):
@@ -279,8 +276,30 @@ if __name__ == '__main__':
     im_net_test = ImageIterator(im_net_test)
     im_net_model = VGG16Model(input_size=[224, 224, 3], output_size=120, log_path="/home/filip/tensor_logs",
                               metrics=["accuracy", "cross_entropy"])
-    im_net_model.build_model(true_build=True)
+    im_net_model.build_model(model_classifier=False)
+
+    # Add Dense Layers
+    im_net_model.add(Flatten(name='flatten_6'))
+    im_net_model.add(DropoutLayer(percent=0.4))
+    im_net_model.add(FullyConnectedLayer([25088, 2048],
+                                         initializer="xavier", name='fully_connected_6_1'))
+    im_net_model.add(ReluLayer(name="relu_6_1"))
+    im_net_model.add(DropoutLayer(percent=0.4))
+
+    im_net_model.add(FullyConnectedLayer([2048, 2048],
+                                         initializer="xavier", name='fully_connected_7_1'))
+    im_net_model.add(ReluLayer(name="relu_7_1"))
+    im_net_model.add(DropoutLayer(percent=0.2))
+
+    im_net_model.add(FullyConnectedLayer([2048, 120], initializer="xavier",
+                                         name='fully_connected_8_1'))
+    im_net_model.set_optimizer()
+    im_net_model.model_compile(learning_rate=0.0001)
+
+    # Delete weights for Dense layers
+    del VGG16MAPPING["fc6"]
+    del VGG16MAPPING["fc7"]
     del VGG16MAPPING["fc8"]
     im_net_model.load_initial_weights("/home/filip/Weights/vgg16_weights.npz", VGG16MAPPING)
-    im_net_model.train(im_net_train, im_net_test, 0.0001, 16, epochs=300, model_build=False)
-
+    # Train model
+    im_net_model.train(im_net_train, im_net_test, 8, epochs=300, early_stop=0.9)

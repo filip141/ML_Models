@@ -78,6 +78,7 @@ class DogsDataset(object):
             one_hot_labels = np.zeros((len(self.class_dict),))
             one_hot_labels[self.class_dict[img_label]] = 1.0
             batch_matrix[img_idx] = (img_res.astype('float32') - np.mean(img_res)) / np.std(img_res)
+            batch_labels[img_idx] = one_hot_labels
             self.position += 1
             self.position = self.position if self.position < len(self.file_list) else 0
         return batch_matrix, batch_labels
