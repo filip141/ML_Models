@@ -21,5 +21,7 @@ class MNISTDataset(object):
         batch_x = batch_x.reshape([number, ] + [28, 28, 1])
         for idx in range(0, number):
             img = cv2.resize(batch_x[idx], tuple(self.res_tuple), interpolation=cv2.INTER_AREA)
-            batch_matrix[idx] = img[:, :, np.newaxis]
+            img_m = (img - np.mean(img))
+            img_m_n = img_m / np.max(img_m)
+            batch_matrix[idx] = img_m_n[:, :, np.newaxis]
         return batch_matrix, batch_y
