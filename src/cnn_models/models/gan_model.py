@@ -57,7 +57,7 @@ class GANNetwork(GANScheme):
 
 if __name__ == '__main__':
     from cnn_models.iterators.mnist import MNISTDataset
-    mnist = MNISTDataset("/home/filip/Datasets", resolution="32x32")
+    mnist = MNISTDataset("/home/filip/Datasets", resolution="32x32", label_only=3)
     # from cnn_models.iterators.cifar import CIFARDataset
     # train_path = "/home/filip/Datasets/cifar/train"
     # test_path = "/home/filip/Datasets/cifar/test"
@@ -66,4 +66,4 @@ if __name__ == '__main__':
     gan = GANNetwork(generator_input_size=[100, ], discriminator_input_size=[32, 32, 1],
                      log_path="/home/filip/tensor_logs")
     gan.build_model(0.0008, 0.0004)
-    gan.train(mnist, 1, 32, epochs=300, sample_per_epoch=1875)
+    gan.train(mnist, 1, 64, epochs=300, sample_per_epoch=1875)

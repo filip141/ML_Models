@@ -140,7 +140,7 @@ class AlexNetModel(object):
     def add_model_classifier(self, optimizer):
         # Layer 6
         self.net_model.add(Flatten(name='flatten_6'))
-        self.net_model.add(FullyConnectedLayer([9216, 4096],
+        self.net_model.add(FullyConnectedLayer([1024, 4096],
                                                initializer="xavier", name='fully_connected_6_1'))
         self.net_model.add(ReluLayer(name="relu_6_1"))
         self.net_model.add(DropoutLayer(percent=0.5))
@@ -157,8 +157,8 @@ class AlexNetModel(object):
             self.set_optimizer()
 
     def set_optimizer(self):
-        # self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_optimizer("SGD")
+        self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+        # self.net_model.set_optimizer("SGD")
         # self.net_model.set_optimizer("Momentum")
         self.net_model.set_loss("cross_entropy")
 
@@ -204,13 +204,12 @@ class AlexNetModel(object):
 
 
 if __name__ == '__main__':
-    im_net_model = AlexNetModel(input_size=[227, 227, 3], output_size=1000, log_path="/home/filip/tensor_logs")
+    from cnn_models.iterators.cifar import CIFARDataset
+    train_path = "/home/filip/Datasets/cifar/train"
+    test_path = "/home/filip/Datasets/cifar/test"
+    cifar_train = CIFARDataset(data_path=train_path, resolution="128x128")
+    cifar_test = CIFARDataset(data_path=test_path, resolution="128x128")
+    im_net_model = AlexNetModel(input_size=[128, 128, 3], output_size=10, log_path="/home/filip/tensor_logs")
     im_net_model.build_model()
     im_net_model.model_compile(0.0001)
-    im_net_model.load_initial_weights("/home/filip/Weights/bvlc_alexnet.npy", ALEXNET_MAPPING_TWO_STREAMS)
-    predicted_proba_idx = im_net_model.predict("/home/filip/Images_DB/radio.jpg")
-    print(predicted_proba_idx)
-    for x_pred in predicted_proba_idx:
-        print(class_names[x_pred])
-    # im_net_model.train(im_net_train, im_net_test, 16, epochs=300, model_build=False)
-
+    im_net_model.train(cifar_train, cifar_test, 16, epochs=300)
