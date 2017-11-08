@@ -79,16 +79,16 @@ class AlexNetModelBN(object):
 
 class AlexNetModel(object):
 
-    def __init__(self, input_size, output_size, log_path):
+    def __init__(self, input_size, output_size, log_path, metrics=None):
         self.input_summary = {"img_number": 30}
         self.input_size = input_size
         self.output_size = output_size
 
         # Define model
-        self.net_model = NetworkParallel(input_size, metric=["accuracy", "cross_entropy"],
-                                         input_summary=self.input_summary, summary_path=log_path)
+        self.net_model = NetworkParallel(input_size, metric=metrics, input_summary=self.input_summary,
+                                         summary_path=log_path)
 
-    def build_model(self, model_classifier=True, optimizer=True):
+    def build_model(self, model_classifier=True, optimizer=True, loss=True):
         # Layer 1
         self.net_model.add(ConvolutionalLayer([11, 11, 96], initializer="xavier", name='convo_layer_1_1', stride=4,
                                               activation="relu", padding="valid"))
@@ -132,12 +132,12 @@ class AlexNetModel(object):
         self.net_model.add(MaxPoolingLayer(pool_size=[3, 3], stride=2, padding="valid", name="pooling_2_1"))
 
         if model_classifier:
-            self.add_model_classifier(optimizer)
+            self.add_model_classifier(optimizer, loss)
 
     def model_compile(self, learning_rate):
         self.net_model.build_model(learning_rate)
 
-    def add_model_classifier(self, optimizer):
+    def add_model_classifier(self, optimizer=True, loss=True):
         # Layer 6
         self.net_model.add(Flatten(name='flatten_6'))
         self.net_model.add(FullyConnectedLayer([1024, 4096],
@@ -154,13 +154,18 @@ class AlexNetModel(object):
         self.net_model.add(FullyConnectedLayer([4096, self.output_size], initializer="xavier",
                                                name='fully_connected_8_1'))
         if optimizer:
-            self.set_optimizer()
+            self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+        if loss:
+            self.net_model.set_loss("cross_entropy")
 
-    def set_optimizer(self):
-        self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        # self.net_model.set_optimizer("SGD")
-        # self.net_model.set_optimizer("Momentum")
-        self.net_model.set_loss("cross_entropy")
+    def set_optimizer(self, opt_name, **kwargs):
+        self.net_model.set_optimizer(opt_name, **kwargs)
+
+    def set_loss(self, loss_name, **kwargs):
+        self.net_model.set_loss(loss_name, **kwargs)
+
+    def add(self, layer):
+        self.net_model.add(layer)
 
     def train(self, train_iterator, test_iterator, batch_size, restore_model=False, epochs=300,
               embedding_num=None, early_stop=None):

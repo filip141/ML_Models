@@ -46,6 +46,8 @@ class ImageIterator(object):
                 m2_1 = random.randint(1, self.max_zoom)
                 m2_2 = random.randint(1, self.max_zoom)
                 ds_img = cv2.resize(ds_img[m1_1:-m1_2, m2_1:-m2_2], tuple(res_tuple), interpolation=cv2.INTER_AREA)
+            if len(ds_img.shape) == 2:
+                ds_img = ds_img[:, :, np.newaxis]
             batch_x[img_idx] = ds_img
         return batch_x, batch_y
 

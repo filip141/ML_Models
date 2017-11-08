@@ -157,7 +157,7 @@ class VGG16Model(object):
         self.net_model = NetworkParallel(input_size, metric=metrics, input_summary=self.input_summary,
                                          summary_path=log_path)
 
-    def build_model(self, model_classifier=True, optimizer=True):
+    def build_model(self, model_classifier=True, optimizer=True, loss=True):
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_1_1'))
         self.net_model.add(ReluLayer(name="relu_1_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_1_2'))
@@ -194,12 +194,12 @@ class VGG16Model(object):
         self.net_model.add(ReluLayer(name="relu_5_3"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="same", name="pooling_5_3"))
         if model_classifier:
-            self.add_model_classifier(optimizer)
+            self.add_model_classifier(optimizer=optimizer, loss=loss)
 
     def model_compile(self, learning_rate):
         self.net_model.build_model(learning_rate)
 
-    def add_model_classifier(self, optimizer):
+    def add_model_classifier(self, optimizer=True, loss=True):
         self.net_model.add(Flatten(name='flatten_6'))
         self.net_model.add(FullyConnectedLayer([512 * int(self.input_size[0] / 32.0)**2, 4096],
                                                initializer="xavier", name='fully_connected_6_1'))
@@ -212,13 +212,15 @@ class VGG16Model(object):
         self.net_model.add(FullyConnectedLayer([4096, self.output_size], initializer="xavier",
                                                name='fully_connected_8_1'))
         if optimizer:
-            self.set_optimizer()
+            self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+        if loss:
+            self.net_model.set_loss("cross_entropy")
 
-    def set_optimizer(self):
-        # self.net_model.set_optimizer("Adam", beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-        self.net_model.set_optimizer("SGD")
-        # self.net_model.set_optimizer("Momentum")
-        self.net_model.set_loss("cross_entropy")
+    def set_optimizer(self, opt_name, **kwargs):
+        self.net_model.set_optimizer(opt_name, **kwargs)
+
+    def set_loss(self, loss_name, **kwargs):
+        self.net_model.set_loss(loss_name, **kwargs)
 
     def add(self, layer):
         self.net_model.add(layer)
@@ -276,7 +278,7 @@ if __name__ == '__main__':
     im_net_test = ImageIterator(im_net_test)
     im_net_model = VGG16Model(input_size=[224, 224, 3], output_size=120, log_path="/home/filip/tensor_logs",
                               metrics=["accuracy", "cross_entropy"])
-    im_net_model.build_model(model_classifier=False)
+    im_net_model.build_model(model_classifier=False, optimizer=False, loss=False)
 
     # Add Dense Layers
     im_net_model.add(Flatten(name='flatten_6'))
@@ -293,7 +295,8 @@ if __name__ == '__main__':
 
     im_net_model.add(FullyConnectedLayer([2048, 120], initializer="xavier",
                                          name='fully_connected_8_1'))
-    im_net_model.set_optimizer()
+    im_net_model.set_optimizer("Adam")
+    im_net_model.set_optimizer("cross_entropy")
     im_net_model.model_compile(learning_rate=0.0001)
 
     # Delete weights for Dense layers
