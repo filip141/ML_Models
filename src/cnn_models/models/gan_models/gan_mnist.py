@@ -55,10 +55,14 @@ class GANNetwork(GANScheme):
         discriminator.add(FullyConnectedLayer([256, 1], initializer="xavier", name='fully_connected_d_4'))
         discriminator.add(LinearLayer(name="linear_d_4"))
 
+
 if __name__ == '__main__':
     from cnn_models.iterators.mnist import MNISTDataset
     mnist = MNISTDataset("/home/filip/Datasets", resolution="28x28")
     gan = GANNetwork(generator_input_size=[100, ], discriminator_input_size=[28, 28, 1],
-                     log_path="/home/filip/tensor_logs", batch_size=128)
-    gan.build_model(0.0001, 0.0001)
-    gan.train(mnist, 1, 128, epochs=300, sample_per_epoch=390)
+                     log_path="/home/filip/tensor_logs/GAN_MNIST", batch_size=128)
+    gan.set_discriminator_optimizer("Adam", beta_1=0.5)
+    gan.set_generator_optimizer("Adam", beta_1=0.5)
+    gan.model_compile(generator_learning_rate=0.001, discriminator_learning_rate=0.001)
+    gan.restore()
+    gan.train(mnist, generator_steps=1, discriminator_steps=1, train_step=128, epochs=300, sample_per_epoch=390)
