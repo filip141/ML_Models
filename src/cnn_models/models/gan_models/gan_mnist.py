@@ -65,4 +65,4 @@ if __name__ == '__main__':
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.model_compile(generator_learning_rate=0.001, discriminator_learning_rate=0.001)
     gan.restore()
-    gan.train(mnist, generator_steps=1, discriminator_steps=1, train_step=128, epochs=300, sample_per_epoch=390)
+    gan.train(mnist, generator_steps=1, discriminator_steps=1, train_step=128, epochs=300, sample_per_epoch=430)
