@@ -83,11 +83,11 @@ class GANNetwork(GANScheme):
 
 if __name__ == '__main__':
     from cnn_models.iterators.celeba import CelebADataset
-    train_path = "/home/filip/Datasets/CelebA"
+    train_path = "/home/phoenix/Datasets/CelebA"
     celeba = CelebADataset(data_path=train_path, resolution="64x64")
     gan = GANNetwork(generator_input_size=[100, ], discriminator_input_size=[64, 64, 3],
-                     log_path="/home/filip/tensor_logs/GAN_CelebA", batch_size=32)
+                     log_path="/home/phoenix/tensor_logs/GAN_CelebA", batch_size=128)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.model_compile(generator_learning_rate=0.0008, discriminator_learning_rate=0.0001)
-    gan.train(celeba, discriminator_steps=10, train_step=32, epochs=300, sample_per_epoch=390)
+    gan.train(celeba, discriminator_steps=10, train_step=128, epochs=300, sample_per_epoch=390)

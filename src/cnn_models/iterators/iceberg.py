@@ -1,5 +1,6 @@
 import cv2
 import json
+import scipy.signal
 import numpy as np
 
 
@@ -22,7 +23,7 @@ class IcebergDataset(object):
         self.res_tuple = [int(x_s) for x_s in resolution.split('x')]
 
     def next_batch(self, number):
-        last_dim_dict = {"angle_concat": 3, "mean_dim": 1}
+        last_dim_dict = {"angle_concat": 3, "mean_dim": 1, "mean_median": 1}
         batch_matrix = np.zeros((number, self.res_tuple[0], self.res_tuple[1], last_dim_dict[self.batch_out]))
         batch_labels = np.zeros((number, 1))
         for idx in range(0, number):
@@ -44,6 +45,9 @@ class IcebergDataset(object):
                 img_n_m = np.concatenate([img_n_m, additional_dim[:, :, np.newaxis]], axis=2)
             elif self.batch_out == "mean_dim":
                 img_n_m = np.mean(img_n_m, axis=2)[:, :, np.newaxis]
+            elif self.batch_out == "mean_median":
+                img_n_m = np.mean(img_n_m, axis=2)
+                img_n_m = scipy.signal.medfilt(img_n_m, kernel_size=3)[:, :, np.newaxis]
             else:
                 raise AttributeError("Image processing method not defined")
             batch_matrix[idx] = img_n_m

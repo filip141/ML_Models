@@ -140,7 +140,7 @@ class AlexNetModel(object):
     def add_model_classifier(self, optimizer=True, loss=True):
         # Layer 6
         self.net_model.add(Flatten(name='flatten_6'))
-        self.net_model.add(FullyConnectedLayer([1024, 4096],
+        self.net_model.add(FullyConnectedLayer([9216, 4096],
                                                initializer="xavier", name='fully_connected_6_1'))
         self.net_model.add(ReluLayer(name="relu_6_1"))
         self.net_model.add(DropoutLayer(percent=0.5))
@@ -209,12 +209,18 @@ class AlexNetModel(object):
 
 
 if __name__ == '__main__':
-    from cnn_models.iterators.cifar import CIFARDataset
-    train_path = "/home/filip/Datasets/cifar/train"
-    test_path = "/home/filip/Datasets/cifar/test"
-    cifar_train = CIFARDataset(data_path=train_path, resolution="128x128")
-    cifar_test = CIFARDataset(data_path=test_path, resolution="128x128")
-    im_net_model = AlexNetModel(input_size=[128, 128, 3], output_size=10, log_path="/home/filip/tensor_logs")
-    im_net_model.build_model()
-    im_net_model.model_compile(0.0001)
-    im_net_model.train(cifar_train, cifar_test, 16, epochs=300)
+    from cnn_models.iterators.tools import ImageIterator
+    from cnn_models.iterators.cats_n_dogs import CatsNDogsDataset
+    data_path = "/home/phoenix/Datasets/CatsNDogs/"
+    cnd_train = ImageIterator(CatsNDogsDataset(data_path=data_path, train_set=True, resize_img="227x227"))
+    cnd_test = ImageIterator(CatsNDogsDataset(data_path=data_path, train_set=False, resize_img="227x227"))
+    im_net_model = AlexNetModel(input_size=[227, 227, 3], output_size=1,
+                                log_path="/home/phoenix/tensor_logs/CatsNDogs", 
+                                metrics=["binary_accuracy", "cross_entropy_sigmoid"])
+    im_net_model.build_model(loss=False, optimizer=False)
+    im_net_model.set_optimizer("Adam")
+    im_net_model.set_loss("cross_entropy", activation="sigmoid")
+    im_net_model.model_compile(0.00001)
+    del ALEXNET_MAPPING_TWO_STREAMS["fc8"]
+    im_net_model.load_initial_weights("/home/phoenix/Weights/bvlc_alexnet.npy", ALEXNET_MAPPING_TWO_STREAMS)
+    im_net_model.train(cnd_train, cnd_test, batch_size=64, epochs=391)
