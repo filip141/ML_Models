@@ -296,7 +296,7 @@ if __name__ == '__main__':
     im_net_model.add(FullyConnectedLayer([2048, 120], initializer="xavier",
                                          name='fully_connected_8_1'))
     im_net_model.set_optimizer("Adam")
-    im_net_model.set_optimizer("cross_entropy")
+    im_net_model.set_loss("cross_entropy")
     im_net_model.model_compile(learning_rate=0.0001)
 
     # Delete weights for Dense layers

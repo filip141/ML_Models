@@ -10,5 +10,5 @@ setup(
     license='',
     author='filip141',
     author_email='201134@student.pwr.wroc.pl',
-    description='', requires=['numpy', 'cv2', 'tensorflow_gpu']
+    description='', requires=['numpy', 'cv2', 'tensorflow_gpu', 'scipy', 'matplotlib']
 )

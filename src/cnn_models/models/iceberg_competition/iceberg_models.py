@@ -46,6 +46,6 @@ def iceberg_alex_net_model(iceberg_db_train, iceberg_db_test):
 
 if __name__ == '__main__':
     json_data_train = "/home/phoenix/Datasets/Iceberg_data/train/processed/train.json"
-    iceberg_db_train = IcebergDataset(json_path=json_data_train, batch_out="mean_median")
-    iceberg_db_test = IcebergDataset(json_path=json_data_train, is_test=True, batch_out="mean_median")
+    iceberg_db_train = IcebergDataset(json_path=json_data_train, batch_out="color_composite")
+    iceberg_db_test = IcebergDataset(json_path=json_data_train, is_test=True, batch_out="color_composite")
     iceberg_alex_net_model(iceberg_db_train, iceberg_db_test)
