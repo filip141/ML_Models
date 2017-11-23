@@ -1,6 +1,6 @@
 from simple_network.models import NetworkParallel, ResidualNode
 from simple_network.layers import ConvolutionalLayer, ReluLayer, FullyConnectedLayer, \
-    Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer
+    Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer
 
 
 class ResNetIceberg(object):
@@ -23,12 +23,12 @@ class ResNetIceberg(object):
             residual_node = ResidualNode(name="residual_node_{}".format(l_idx + 1), ntimes=4)
             residual_node.add(BatchNormalizationLayer(name="batch_normalization_residual_{}_1".format(l_idx + 1),
                                                       summaries=False))
-            residual_node.add(ReluLayer(name="relu_layer_residual_{}_1".format(l_idx + 1), summaries=False))
+            residual_node.add(LeakyReluLayer(name="leaky_residual_{}_1".format(l_idx + 1), summaries=False))
             residual_node.add(ConvolutionalLayer([3, 3, 32], initializer="xavier",
                                                  name='convo_layer_residual_{}_1'.format(l_idx + 1), summaries=False))
             residual_node.add(BatchNormalizationLayer(name="batch_normalization_residual_{}_2".format(l_idx + 1),
                                                       summaries=False))
-            residual_node.add(ReluLayer(name="relu_layer_residual_{}_2".format(l_idx + 1), summaries=False))
+            residual_node.add(LeakyReluLayer(name="leaky_layer_residual_{}_2".format(l_idx + 1), summaries=False))
             residual_node.add(ConvolutionalLayer([3, 3, 32], initializer="xavier",
                                                  name='convo_layer_residual_{}_2'.format(l_idx + 1), summaries=False))
             self.net_model.add(residual_node)
@@ -47,11 +47,13 @@ class ResNetIceberg(object):
     def model_compile(self, learning_rate):
         self.net_model.build_model(learning_rate)
 
-    def train(self, train_iterator, test_iterator, batch_size, restore_model=False, epochs=300):
+    def train(self, train_iterator, test_iterator, batch_size, batch_size_test=None, restore_model=False, epochs=300):
+        if batch_size_test is None:
+            batch_size_test = batch_size
         if restore_model:
             self.net_model.restore()
         self.net_model.train(train_iter=train_iterator, train_step=batch_size, test_iter=test_iterator,
-                             test_step=batch_size, sample_per_epoch=391, epochs=epochs)
+                             test_step=batch_size_test, sample_per_epoch=391, epochs=epochs)
 
 if __name__ == '__main__':
     from cnn_models.iterators.iceberg import IcebergDataset
@@ -63,7 +65,7 @@ if __name__ == '__main__':
                                                    batch_out="color_composite_nn", divide_point=0.2), rotate=360)
     resnet = ResNetIceberg(input_size=[75, 75, 3], output_size=1,
                            metrics=["binary_accuracy", "cross_entropy_sigmoid"],
-                           log_path="/home/filip/tensor_logs/ResNet_ICEBERG")
+                           log_path="/home/filip/tensor_logs/ResNet_ICEBERG_NN")
     resnet.build_model()
     resnet.model_compile(0.0001)
-    resnet.train(iceberg_db_train, iceberg_db_test, batch_size=32)
+    resnet.train(iceberg_db_train, iceberg_db_test, batch_size=32, batch_size_test=310)

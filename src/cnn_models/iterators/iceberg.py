@@ -51,8 +51,9 @@ class IcebergDataset(object):
                 b = (band_3 - band_3.min()) / (band_3.max() - band_3.min())
                 img_n_m = np.dstack((r, g, b))
             elif self.batch_out == "color_composite_nn":
-                band_1 = img[:, :, 0]
-                band_2 = img[:, :, 1]
+                inc_angle = img_data['inc_angle'] if isinstance(img_data['inc_angle'], float) else 39.2687
+                band_1 = np.sin(inc_angle) * img[:, :, 0]
+                band_2 = np.sin(inc_angle) * img[:, :, 1]
                 band_3 = img[:, :, 0] / img[:, :, 1]
                 img_n_m = np.dstack((band_1, band_2, band_3))
             elif self.batch_out == "mean_dim":

@@ -149,7 +149,7 @@ class VGG16Model(object):
     def __init__(self, input_size, output_size, log_path, metrics=None):
         if metrics is None:
             metrics = []
-        self.input_summary = {"img_number": 30}
+        self.input_summary = {"img_number": 5}
         self.input_size = input_size
         self.output_size = output_size
 
