@@ -23,7 +23,7 @@ class IcebergDataset(object):
 
     def next_batch(self, number):
         last_dim_dict = {"angle_concat": 3, "mean_dim": 1, "mean_median": 1, "color_composite": 3,
-                         "color_composite_nn": 3}
+                         "color_composite_nn": 3, "color_composite_nsc": 3}
         batch_matrix = np.zeros((number, self.res_tuple[0], self.res_tuple[1], last_dim_dict[self.batch_out]))
         batch_labels = np.zeros((number, 1))
         for idx in range(0, number):
@@ -54,6 +54,11 @@ class IcebergDataset(object):
                 inc_angle = img_data['inc_angle'] if isinstance(img_data['inc_angle'], float) else 39.2687
                 band_1 = np.sin(inc_angle) * img[:, :, 0]
                 band_2 = np.sin(inc_angle) * img[:, :, 1]
+                band_3 = img[:, :, 0] / img[:, :, 1]
+                img_n_m = np.dstack((band_1, band_2, band_3))
+            elif self.batch_out == "color_composite_nsc":
+                band_1 = img[:, :, 0]
+                band_2 = img[:, :, 1]
                 band_3 = img[:, :, 0] / img[:, :, 1]
                 img_n_m = np.dstack((band_1, band_2, band_3))
             elif self.batch_out == "mean_dim":
