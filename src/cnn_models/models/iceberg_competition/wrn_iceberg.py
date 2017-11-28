@@ -83,9 +83,9 @@ if __name__ == '__main__':
                                                     divide_point=0.2), rotate=360)
     iceberg_db_test = ImageIterator(IcebergDataset(json_path=json_data_train, is_test=True,
                                                    batch_out="color_composite_nn", divide_point=0.2), rotate=360)
-    resnet = WRNIceberg(input_size=[75, 75, 3], output_size=1,
+    wrnnet = WRNIceberg(input_size=[75, 75, 3], output_size=1,
                         metrics=["binary_accuracy", "cross_entropy_sigmoid"],
                         log_path="/home/filip/tensor_logs/WRN_ICEBERG", widening=8, n_blocks=3)
-    resnet.build_model()
-    resnet.model_compile(0.0001)
-    resnet.train(iceberg_db_train, iceberg_db_test, batch_size=32, batch_size_test=310)
+    wrnnet.build_model()
+    wrnnet.model_compile(0.0001)
+    wrnnet.train(iceberg_db_train, iceberg_db_test, batch_size=32, batch_size_test=310)
