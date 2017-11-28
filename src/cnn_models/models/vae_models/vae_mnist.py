@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from simple_network.models import VAEScheme
 from simple_network.models.additional_nodes import NetworkNode
 from simple_network.layers import DeconvolutionLayer, FullyConnectedLayer, ConvolutionalLayer, ReshapeLayer, \
-    LeakyReluLayer, BatchNormalizationLayer, DropoutLayer, Flatten, SigmoidLayer, LinearLayer
+    LeakyReluLayer, BatchNormalizationLayer, DropoutLayer, Flatten, SigmoidLayer
 
 
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 class VAENetwork(VAEScheme):
 
-    def __init__(self, encoder_input_size, decoder_input_size, batch_size, log_path):
-        super(VAENetwork, self).__init__(encoder_input_size, decoder_input_size, batch_size, log_path)
+    def __init__(self, encoder_input_size, decoder_input_size, batch_size, log_path, labels='none'):
+        super(VAENetwork, self).__init__(encoder_input_size, decoder_input_size, batch_size, log_path, labels=labels)
         self.batch_size = batch_size
 
     def build_encoder(self, encoder):
@@ -48,17 +48,23 @@ class VAENetwork(VAEScheme):
         generator.add(LeakyReluLayer(alpha=0.2, name="leaky_relu_d_2"))
 
         # Deconvolution 2
-        generator.add(DeconvolutionLayer([5, 5, 1], output_shape=[28, 28, 1], initializer="normal",
+        generator.add(DeconvolutionLayer([5, 5, 1], output_shape=self.decoder_output_size,
+                                         initializer="normal",
                                          name='deconv_layer_d_3', stride=2, batch_size=self.batch_size))
         generator.add(SigmoidLayer(name="sigmoid_d_3"))
 
-    def predict(self, input_data):
+    def predict(self, input_data, label=None):
+        if label is not None:
+            one_hot = np.zeros(shape=[1, 10])
+            one_hot[0, label] = 1.0
+            input_data = np.concatenate([input_data, one_hot], axis=1)
         batch_matrix = np.zeros((1, self.decoder_input_size[0]), dtype=np.float32)
         batch_matrix[0] = input_data
+        pred_dict = {self.decoder_network.input_layer_placeholder: batch_matrix,
+                     self.decoder_network.is_training_placeholder: False}
         eval_result = self.decoder_network.sess.run(
             self.decoder_network.layer_outputs[-1],
-            feed_dict={self.decoder_network.input_layer_placeholder: batch_matrix,
-                       self.decoder_network.is_training_placeholder: False})
+            feed_dict=pred_dict)
         return 255 * eval_result[0, :, :, 0]
 
     def print_fancy_image(self):
@@ -92,15 +98,36 @@ class VAENetwork(VAEScheme):
         plt.colorbar()
         plt.show()
 
+    def print_fancy_image_rand_multidim(self, n_dim):
+        n = 15
+        digit_size = 28
+        figure = np.zeros((digit_size * n, digit_size * n))
+
+        for i in range(n):
+            for j in range(n):
+                z_sample = np.random.uniform(0.0, 1.0, size=[1, n_dim])
+                x_decoded = self.predict(z_sample)
+                digit = x_decoded.reshape(digit_size, digit_size)
+                figure[i * digit_size: (i + 1) * digit_size,
+                       j * digit_size: (j + 1) * digit_size] = digit
+
+        plt.figure(figsize=(10, 10))
+        plt.imshow(figure, cmap='Greys_r')
+        plt.show()
+
 if __name__ == '__main__':
     from cnn_models.iterators.mnist import MNISTDataset
-    mnist = MNISTDataset("/home/filip/Datasets", resolution="28x28")
-    vae = VAENetwork(decoder_input_size=[2, ], encoder_input_size=[28, 28, 1],
-                     log_path="/home/filip/tensor_logs/VAE_MNIST", batch_size=1)
-    # vae.set_optimizer("Adam", beta_1=0.5)
+    mnist = MNISTDataset("/home/filip/Datasets", resolution="28x28", one_hot=True)
+    vae = VAENetwork(decoder_input_size=32, encoder_input_size=[28, 28, 1],
+                     log_path="/home/filip/tensor_logs/CVAE_MNIST", batch_size=1, labels="convo_style")
+    vae.set_optimizer("Adam", beta_1=0.5)
     vae.model_compile(learning_rate=0.0001)
-    # vae.train(mnist, train_step=256, epochs=300, sample_per_epoch=430)
     vae.restore()
-    vae.print_fancy_image()
+    # vae.train(mnist, train_step=128, epochs=300, sample_per_epoch=430, restore_model=True)
+    vec_ref = np.random.uniform(0.0, 1.0, size=[1, 32])
+    img = vae.predict(vec_ref, label=7)
+    plt.imshow(img, cmap='gray')
+    plt.show()
+    # vae.print_fancy_image_rand_multidim(n_dim=32)
     # vae.print_plane(mnist, batch_size=10000)
-
+#

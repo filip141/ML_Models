@@ -80,15 +80,17 @@ class VAENetwork(VAEScheme):
         plt.imshow(figure, cmap='Greys_r')
         plt.show()
 
-    def print_plane(self, dataset, batch_size=256):
+    def print_plane(self, dataset, batch_size=256, one_hot=False):
         one_hot_dec = lambda lab: [np.argmax(x) for x in lab]
         imgs, labels = dataset.next_batch(batch_size)
         eval_result = self.encoder_network.sess.run(
             self.encoder_network.layer_outputs[-1],
             feed_dict={self.encoder_network.input_layer_placeholder: imgs,
                        self.encoder_network.is_training_placeholder: False})
+        if one_hot:
+            labels = one_hot_dec(labels)
         plt.figure(figsize=(6, 6))
-        plt.scatter(eval_result[0][:, 0], eval_result[0][:, 1], c=one_hot_dec(labels))
+        plt.scatter(eval_result[0][:, 0], eval_result[0][:, 1], c=labels)
         plt.colorbar()
         plt.show()
 
@@ -96,11 +98,11 @@ if __name__ == '__main__':
     from cnn_models.iterators.iceberg import IcebergDataset
     json_data_train = "/home/filip/Datasets/Iceberg_data/train/processed/train.json"
     iceberg_db_train = IcebergDataset(json_path=json_data_train, batch_out="mean_dim", resolution="28x28")
-    vae = VAENetwork(decoder_input_size=[32, ], encoder_input_size=[28, 28, 1],
-                     log_path="/home/filip/tensor_logs/VAE_Iceberg", batch_size=128)
-    vae.set_optimizer("Adam", beta_1=0.5)
+    vae = VAENetwork(decoder_input_size=[2, ], encoder_input_size=[28, 28, 1],
+                     log_path="/home/filip/tensor_logs/VAE_Iceberg", batch_size=1)
+    # vae.set_optimizer("Adam", beta_1=0.5)
     vae.model_compile(learning_rate=0.0001)
-    vae.train(iceberg_db_train, train_step=128, epochs=300, sample_per_epoch=430)
+    # vae.train(iceberg_db_train, train_step=128, epochs=300, sample_per_epoch=430)
     # vae.print_fancy_image()
-    # vae.print_plane(mnist, batch_size=10000)
+    vae.print_plane(iceberg_db_train, batch_size=1600)
 
