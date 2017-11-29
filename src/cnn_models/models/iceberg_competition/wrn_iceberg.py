@@ -1,6 +1,6 @@
 from simple_network.models import NetworkParallel, ResidualNode
 from simple_network.layers import ConvolutionalLayer, ReluLayer, FullyConnectedLayer, \
-    Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer
+    Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer, SpatialDropoutLayer
 
 
 class WRNIceberg(object):
@@ -47,6 +47,7 @@ class WRNIceberg(object):
             residual_node.add(BatchNormalizationLayer(name="batch_normalization_residual_{}_1".format(l_idx + 1),
                                                       summaries=False))
             residual_node.add(LeakyReluLayer(name="leaky_residual_{}_1".format(l_idx + 1), summaries=False))
+            residual_node.add(SpatialDropoutLayer(percent=0.4, name="spatial_dropout_{}_1".format(l_idx + 1)))
             residual_node.add(ConvolutionalLayer([3, 3, 16 * self.widening * 2**l_idx], initializer="xavier",
                                                  name='convo_layer_residual_{}_1'.format(l_idx + 1), summaries=False))
 
@@ -54,6 +55,7 @@ class WRNIceberg(object):
             residual_node.add(BatchNormalizationLayer(name="batch_normalization_residual_{}_2".format(l_idx + 1),
                                                       summaries=False))
             residual_node.add(LeakyReluLayer(name="leaky_layer_residual_{}_2".format(l_idx + 1), summaries=False))
+            residual_node.add(SpatialDropoutLayer(percent=0.4, name="spatial_dropout_{}_2".format(l_idx + 1)))
             residual_node.add(ConvolutionalLayer([3, 3, 16 * self.widening * 2**l_idx], initializer="xavier",
                                                  name='convo_layer_residual_{}_2'.format(l_idx + 1), summaries=False))
             self.net_model.add(residual_node)

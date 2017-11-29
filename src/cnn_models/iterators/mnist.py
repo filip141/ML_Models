@@ -5,7 +5,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 class MNISTDataset(object):
 
-    def __init__(self, data_path="./train", resolution="32x32", train_set=True, one_hot=False):
+    def __init__(self, data_path="./train", resolution="32x32", train_set=True, one_hot=True):
         mnist = input_data.read_data_sets(data_path, one_hot=True)
         self.res_tuple = [int(x_s) for x_s in resolution.split('x')]
         self.mnist_dataset = None

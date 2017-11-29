@@ -1,6 +1,6 @@
 from simple_network.models import NetworkParallel
 from simple_network.layers import BatchNormalizationLayer, FullyConnectedLayer, \
-     Flatten, LinearLayer, ConvolutionalLayer, DropoutLayer, ReluLayer, MaxPoolingLayer
+     Flatten, LinearLayer, ConvolutionalLayer, DropoutLayer, ReluLayer, MaxPoolingLayer, SpatialDropoutLayer
 
 
 class CNNMNIST(object):
@@ -24,23 +24,22 @@ class CNNMNIST(object):
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_2"))
         self.net_model.add(ReluLayer(name="relu_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_2"))
-        self.net_model.add(DropoutLayer(percent=0.4, name="dropout_2"))
+        self.net_model.add(SpatialDropoutLayer(percent=0.4, name="dropout_2"))
 
         self.net_model.add(ConvolutionalLayer([4, 4, 24], initializer="xavier", name='convo_layer_3'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3"))
         self.net_model.add(ReluLayer(name="relu_3"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_3"))
-        self.net_model.add(DropoutLayer(percent=0.4, name="dropout_3"))
+        self.net_model.add(SpatialDropoutLayer(percent=0.4, name="dropout_3"))
 
         self.net_model.add(Flatten(name="flatten_5"))
-        self.net_model.add(FullyConnectedLayer([1176, 200],
-                                               initializer="xavier", name='fully_connected_4'))
+        self.net_model.add(FullyConnectedLayer(out_neurons=200, initializer="xavier", name='fully_connected_4'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_4"))
         self.net_model.add(ReluLayer(name="relu_4"))
         self.net_model.add(DropoutLayer(percent=0.5, name="dropout_4"))
 
-        self.net_model.add(FullyConnectedLayer([200, self.output_size],
-                                               initializer="xavier", name='fully_connected_5'))
+        self.net_model.add(FullyConnectedLayer(out_neurons=self.output_size, initializer="xavier",
+                                               name='fully_connected_5'))
         self.net_model.add(LinearLayer(name="linear_5"))
 
     def model_compile(self, learning_rate):
