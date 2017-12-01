@@ -1,6 +1,7 @@
 from simple_network.models import NetworkParallel
 from simple_network.layers import BatchNormalizationLayer, FullyConnectedLayer, \
-     Flatten, LinearLayer, ConvolutionalLayer, DropoutLayer, ReluLayer, MaxPoolingLayer, SpatialDropoutLayer
+     Flatten, LinearLayer, ConvolutionalLayer, DropoutLayer, ReluLayer, MaxPoolingLayer, SpatialDropoutLayer, \
+    SwishLayer
 
 
 class CNNMNIST(object):
@@ -18,24 +19,24 @@ class CNNMNIST(object):
         # Layer 1
         self.net_model.add(ConvolutionalLayer([6, 6, 6], initializer="xavier", name='convo_layer_1'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1"))
-        self.net_model.add(ReluLayer(name="relu_1"))
+        self.net_model.add(SwishLayer(name="swish_1"))
 
         self.net_model.add(ConvolutionalLayer([5, 5, 12], initializer="xavier", name='convo_layer_2'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_2"))
-        self.net_model.add(ReluLayer(name="relu_2"))
+        self.net_model.add(SwishLayer(name="swish_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_2"))
         self.net_model.add(SpatialDropoutLayer(percent=0.4, name="dropout_2"))
 
         self.net_model.add(ConvolutionalLayer([4, 4, 24], initializer="xavier", name='convo_layer_3'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3"))
-        self.net_model.add(ReluLayer(name="relu_3"))
+        self.net_model.add(SwishLayer(name="swish_3"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_3"))
         self.net_model.add(SpatialDropoutLayer(percent=0.4, name="dropout_3"))
 
         self.net_model.add(Flatten(name="flatten_5"))
         self.net_model.add(FullyConnectedLayer(out_neurons=200, initializer="xavier", name='fully_connected_4'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_4"))
-        self.net_model.add(ReluLayer(name="relu_4"))
+        self.net_model.add(SwishLayer(name="swish_4"))
         self.net_model.add(DropoutLayer(percent=0.5, name="dropout_4"))
 
         self.net_model.add(FullyConnectedLayer(out_neurons=self.output_size, initializer="xavier",
@@ -81,4 +82,4 @@ if __name__ == '__main__':
     dense_mnist.set_optimizer("Adam")
     dense_mnist.set_loss("cross_entropy", activation="softmax")
     dense_mnist.model_compile(0.003)
-    dense_mnist.train(mnist_train, mnist_test, batch_size_test=250, batch_size=100, epochs=550)
+    dense_mnist.train(mnist_train, mnist_test, batch_size_test=1000, batch_size=100, epochs=550, restore_model=True)

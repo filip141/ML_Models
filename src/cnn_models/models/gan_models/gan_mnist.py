@@ -18,7 +18,7 @@ class GANNetwork(GANScheme):
         self.batch_size = batch_size
 
     def build_generator(self, generator):
-        generator.add(FullyConnectedLayer([np.prod(self.generator_input_size), 12544], initializer="xavier",
+        generator.add(FullyConnectedLayer(out_neurons=12544, initializer="xavier",
                                           name='fully_connected_g_1'))
         generator.add(LeakyReluLayer(alpha=0.2, name="leaky_relu_g_1"))
         generator.add(DropoutLayer(percent=0.5))
@@ -51,12 +51,12 @@ class GANNetwork(GANScheme):
 
         # Dense 1
         discriminator.add(Flatten(name="flatten_d"))
-        discriminator.add(FullyConnectedLayer([6272, 256], initializer="xavier", name='fully_connected_d_3'))
+        discriminator.add(FullyConnectedLayer(out_neurons=256, initializer="xavier", name='fully_connected_d_3'))
         discriminator.add(LeakyReluLayer(alpha=0.2, name="leaky_relu_d_3"))
         discriminator.add(DropoutLayer(percent=0.5))
 
         # Dense 2
-        discriminator.add(FullyConnectedLayer([256, 1], initializer="xavier", name='fully_connected_d_4'))
+        discriminator.add(FullyConnectedLayer(out_neurons=1, initializer="xavier", name='fully_connected_d_4'))
         discriminator.add(LinearLayer(name="linear_d_4"))
 
 
