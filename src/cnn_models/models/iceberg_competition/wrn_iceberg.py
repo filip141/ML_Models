@@ -58,13 +58,14 @@ class WRNIceberg(object):
             residual_node.add(SpatialDropoutLayer(percent=0.4, name="spatial_dropout_{}_2".format(l_idx + 1)))
             residual_node.add(ConvolutionalLayer([3, 3, 16 * self.widening * 2**l_idx], initializer="xavier",
                                                  name='convo_layer_residual_{}_2'.format(l_idx + 1), summaries=False))
+            residual_node.add_act_layer(ReluLayer("relu_layer_final_{}".format(l_idx)))
             self.net_model.add(residual_node)
-            self.net_model.add(ReluLayer("relu_layer_final_{}".format(l_idx)))
+        self.net_model.add(ReluLayer("relu_layer_model_end"))
         self.net_model.add(GlobalAveragePoolingLayer(name="global_average_pool_1"))
         self.net_model.add(FullyConnectedLayer(out_neurons=self.output_size, initializer="xavier",
                                                name='fully_connected_final'))
         self.net_model.set_loss("cross_entropy", activation="sigmoid")
-        self.net_model.set_optimizer("Momentum")
+        self.net_model.set_optimizer("Adam")
 
     def model_compile(self, learning_rate):
         self.net_model.build_model(learning_rate)
@@ -81,13 +82,13 @@ if __name__ == '__main__':
     from cnn_models.iterators.iceberg import IcebergDataset
     from cnn_models.iterators.tools import ImageIterator
     json_data_train = "/home/filip/Datasets/Iceberg_data/train/processed/train.json"
-    iceberg_db_train = ImageIterator(IcebergDataset(json_path=json_data_train, batch_out="color_composite",
+    iceberg_db_train = ImageIterator(IcebergDataset(json_path=json_data_train, batch_out="color_composite_nsc",
                                                     divide_point=0.2), rotate=360)
-    iceberg_db_test = ImageIterator(IcebergDataset(json_path=json_data_train, is_test=True,
-                                                   batch_out="color_composite_nn", divide_point=0.2), rotate=360)
+    iceberg_db_test = IcebergDataset(json_path=json_data_train, is_test=True, batch_out="color_composite_nsc",
+                                     divide_point=0.2)
     wrnnet = WRNIceberg(input_size=[75, 75, 3], output_size=1,
                         metrics=["binary_accuracy", "cross_entropy_sigmoid"],
-                        log_path="/home/filip/tensor_logs/WRN_ICEBERG", widening=8, n_blocks=3)
+                        log_path="/home/filip/tensor_logs/WRN_ICEBERG_TT", widening=1, n_blocks=2)
     wrnnet.build_model()
     wrnnet.model_compile(0.0001)
-    wrnnet.train(iceberg_db_train, iceberg_db_test, batch_size=32, batch_size_test=310)
+    wrnnet.train(iceberg_db_train, iceberg_db_test, batch_size=1, batch_size_test=100)
