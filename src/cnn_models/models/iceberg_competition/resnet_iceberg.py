@@ -1,6 +1,6 @@
 from simple_network.models import NetworkParallel, ResidualNode
-from simple_network.layers import ConvolutionalLayer, ReluLayer, FullyConnectedLayer, \
-    Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer
+from simple_network.layers import ConvolutionalLayer, FullyConnectedLayer, \
+    Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer, SwishLayer
 
 
 class ResNetIceberg(object):
@@ -15,7 +15,6 @@ class ResNetIceberg(object):
                                          input_summary=self.input_summary, summary_path=log_path)
 
     def build_model(self):
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_0"))
         self.net_model.add(ConvolutionalLayer([3, 3, 32], initializer="xavier", name='convo_layer_1'))
         self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1"))
 
@@ -23,12 +22,12 @@ class ResNetIceberg(object):
             residual_node = ResidualNode(name="residual_node_{}".format(l_idx + 1), ntimes=4)
             residual_node.add(BatchNormalizationLayer(name="batch_normalization_residual_{}_1".format(l_idx + 1),
                                                       summaries=False))
-            residual_node.add(LeakyReluLayer(name="leaky_residual_{}_1".format(l_idx + 1), summaries=False))
+            residual_node.add(SwishLayer(name="swish_residual_{}_1".format(l_idx + 1), summaries=False))
             residual_node.add(ConvolutionalLayer([3, 3, 32], initializer="xavier",
                                                  name='convo_layer_residual_{}_1'.format(l_idx + 1), summaries=False))
             residual_node.add(BatchNormalizationLayer(name="batch_normalization_residual_{}_2".format(l_idx + 1),
                                                       summaries=False))
-            residual_node.add(LeakyReluLayer(name="leaky_layer_residual_{}_2".format(l_idx + 1), summaries=False))
+            residual_node.add(SwishLayer(name="swish_layer_residual_{}_2".format(l_idx + 1), summaries=False))
             residual_node.add(ConvolutionalLayer([3, 3, 32], initializer="xavier",
                                                  name='convo_layer_residual_{}_2'.format(l_idx + 1), summaries=False))
             self.net_model.add(residual_node)
@@ -58,14 +57,14 @@ class ResNetIceberg(object):
 if __name__ == '__main__':
     from cnn_models.iterators.iceberg import IcebergDataset
     from cnn_models.iterators.tools import ImageIterator
-    json_data_train = "/home/filip/Datasets/Iceberg_data/train/processed/train.json"
+    json_data_train = "/home/phoenix/Datasets/Iceberg_data/train/processed/train.json"
     iceberg_db_train = ImageIterator(IcebergDataset(json_path=json_data_train, batch_out="color_composite_nn",
                                                     divide_point=0.2), rotate=360)
     iceberg_db_test = ImageIterator(IcebergDataset(json_path=json_data_train, is_test=True,
                                                    batch_out="color_composite_nn", divide_point=0.2), rotate=360)
     resnet = ResNetIceberg(input_size=[75, 75, 3], output_size=1,
                            metrics=["binary_accuracy", "cross_entropy_sigmoid"],
-                           log_path="/home/filip/tensor_logs/ResNet_ICEBERG_NN")
+                           log_path="/home/phoenix/tensor_logs/ResNet_ICEBERG_NO_SIN")
     resnet.build_model()
     resnet.model_compile(0.0001)
     resnet.train(iceberg_db_train, iceberg_db_test, batch_size=32, batch_size_test=310)

@@ -3,7 +3,7 @@ from simple_network.layers import ConvolutionalLayer, ReluLayer, FullyConnectedL
     Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer, SpatialDropoutLayer
 
 
-class WRNIceberg(object):
+class WRNNRIQA(object):
 
     def __init__(self, input_size, output_size, metrics, log_path, n_blocks=2, widening=2):
         self.input_summary = {"img_number": 5}
@@ -70,25 +70,33 @@ class WRNIceberg(object):
     def model_compile(self, learning_rate):
         self.net_model.build_model(learning_rate)
 
+    def set_optimizer(self, opt_name, **kwargs):
+        self.net_model.set_optimizer(opt_name, **kwargs)
+
+    def set_loss(self, loss_name, **kwargs):
+        self.net_model.set_loss(loss_name, **kwargs)
+
     def train(self, train_iterator, test_iterator, batch_size, batch_size_test=None, restore_model=False, epochs=300):
         if batch_size_test is None:
             batch_size_test = batch_size
         if restore_model:
             self.net_model.restore()
         self.net_model.train(train_iter=train_iterator, train_step=batch_size, test_iter=test_iterator,
-                             test_step=batch_size_test, sample_per_epoch=391, epochs=epochs)
+                             test_step=batch_size_test, sample_per_epoch=246, epochs=epochs)
+
 
 if __name__ == '__main__':
-    from cnn_models.iterators.iceberg import IcebergDataset
-    from cnn_models.iterators.tools import ImageIterator
-    json_data_train = "/home/phoenix/Datasets/Iceberg_data/train/processed/train.json"
-    iceberg_db_train = ImageIterator(IcebergDataset(json_path=json_data_train, batch_out="color_composite_nsc",
-                                                    divide_point=0.2), rotate=360)
-    iceberg_db_test = IcebergDataset(json_path=json_data_train, is_test=True, batch_out="color_composite_nsc",
-                                     divide_point=0.2)
-    wrnnet = WRNIceberg(input_size=[75, 75, 3], output_size=1,
-                        metrics=["binary_accuracy", "cross_entropy_sigmoid"],
-                        log_path="/home/phoenix/tensor_logs/WRN_ICEBERG_k6_n2_NoScale_batchsize_4", widening=8, n_blocks=3)
+    from cnn_models.iterators.live_dataset import LIVEDataset
+    dataset_path = "/home/phoenix/Datasets/Live2005"
+    cnd_train = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="224x224", patches_method='random',
+                            no_patches=1, is_train=True)
+    cnd_test = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="224x224", patches_method='random',
+                           no_patches=1, is_train=False)
+    wrnnet = WRNNRIQA(input_size=[224, 224, 3], output_size=1,
+                      metrics=["mse", "mae"],
+                      log_path="/home/phoenix/tensor_logs/WRN_NRIQA", widening=2, n_blocks=2)
     wrnnet.build_model()
+    wrnnet.set_optimizer("SGD")
+    wrnnet.set_loss("mae")
     wrnnet.model_compile(0.0005)
-    wrnnet.train(iceberg_db_train, iceberg_db_test, batch_size=4, batch_size_test=310)
+    wrnnet.train(cnd_train, cnd_test, batch_size=2, batch_size_test=49)

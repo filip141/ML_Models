@@ -3,6 +3,7 @@ import cv2
 import random
 import numpy as np
 
+
 class LIVEDataset(object):
 
     def __init__(self, data_path="./train", new_resolution="320x320", patches=None,
@@ -68,12 +69,13 @@ class LIVEDataset(object):
             if len(splt_line) < 3:
                 continue
             self.images_mos.append((os.path.join(self.wn_path, splt_line[1]), float(splt_line[2].rstrip())))
-        random.shuffle(self.images_mos)
 
         # Divide into test and train
         test_len = int(0.2 * len(self.images_mos))
         self.train_mos = self.images_mos[test_len:]
         self.test_mos = self.images_mos[:test_len]
+        random.shuffle(self.train_mos)
+        random.shuffle(self.test_mos)
 
     def next_batch(self, number):
         if self.is_train:
