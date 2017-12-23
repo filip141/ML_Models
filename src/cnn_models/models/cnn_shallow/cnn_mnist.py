@@ -73,13 +73,13 @@ class CNNMNIST(object):
 
 if __name__ == '__main__':
     from cnn_models.iterators.mnist import MNISTDataset
-    mnist_train = MNISTDataset("/home/filip/Datasets", resolution="28x28", train_set=True)
-    mnist_test = MNISTDataset("/home/filip/Datasets", resolution="28x28", train_set=False)
+    mnist_train = MNISTDataset("/home/filip141/Datasets", resolution="28x28", train_set=True)
+    mnist_test = MNISTDataset("/home/filip141/Datasets", resolution="28x28", train_set=False)
     dense_mnist = CNNMNIST(input_size=[28, 28, 1], output_size=10,
-                           log_path="/home/filip/tensor_logs/CNN_MNIST",
+                           log_path="/home/filip141/tensor_logs/CNN_MNIST",
                            metrics=["accuracy", "cross_entropy"])
     dense_mnist.build_model()
     dense_mnist.set_optimizer("Adam")
     dense_mnist.set_loss("cross_entropy", activation="softmax")
     dense_mnist.model_compile(0.003)
-    dense_mnist.train(mnist_train, mnist_test, batch_size_test=1000, batch_size=100, epochs=550, restore_model=True)
+    dense_mnist.train(mnist_train, mnist_test, batch_size_test=1000, batch_size=100, epochs=550, restore_model=False)

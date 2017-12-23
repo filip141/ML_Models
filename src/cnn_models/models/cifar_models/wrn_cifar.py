@@ -3,7 +3,7 @@ from simple_network.layers import ConvolutionalLayer, ReluLayer, FullyConnectedL
     Flatten, BatchNormalizationLayer, GlobalAveragePoolingLayer, LeakyReluLayer
 
 
-class WRNNRIQA(object):
+class WRNCifar(object):
 
     def __init__(self, input_size, output_size, metrics, log_path, n_blocks=2, widening=2):
         self.input_summary = {"img_number": 5}
@@ -74,27 +74,29 @@ class WRNNRIQA(object):
     def set_loss(self, loss_name, **kwargs):
         self.net_model.set_loss(loss_name, **kwargs)
 
-    def train(self, train_iterator, test_iterator, batch_size, batch_size_test=None, restore_model=False, epochs=300):
+    def train(self, train_iterator, test_iterator, batch_size, batch_size_test=None, restore_model=False, epochs=300,
+              summary_step=10, sample_per_epoch=10000):
         if batch_size_test is None:
             batch_size_test = batch_size
         if restore_model:
             self.net_model.restore()
         self.net_model.train(train_iter=train_iterator, train_step=batch_size, test_iter=test_iterator,
-                             test_step=batch_size_test, sample_per_epoch=246, epochs=epochs)
+                             test_step=batch_size_test, sample_per_epoch=sample_per_epoch, epochs=epochs,
+                             summary_step=summary_step)
 
 
 if __name__ == '__main__':
-    from cnn_models.iterators.live_dataset import LIVEDataset
-    dataset_path = "/home/filip141/Datasets/Live"
-    cnd_train = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="64x64", patches_method='random',
-                            no_patches=1, is_train=True)
-    cnd_test = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="64x64", patches_method='random',
-                           no_patches=1, is_train=False)
-    wrnnet = WRNNRIQA(input_size=[64, 64, 3], output_size=1,
-                      metrics=["mse", "mae"],
-                      log_path="/home/filip141/tensor_logs/WRN_NRIQA", widening=3, n_blocks=2)
+    from cnn_models.iterators.cifar import CIFARDataset
+    cifar_train_path = "/home/filip141/Datasets/cifar/train"
+    cifar_test_path = "/home/filip141/Datasets/cifar/test"
+    cifar_train = CIFARDataset(data_path=cifar_train_path, resolution="32x32", force_overfit=False)
+    cifar_test = CIFARDataset(data_path=cifar_test_path, resolution="32x32", force_overfit=False)
+    wrnnet = WRNCifar(input_size=[32, 32, 3], output_size=10,
+                      metrics=["accuracy", "cross_entropy"],
+                      log_path="/home/filip141/tensor_logs/WRN_CIFAR", widening=4, n_blocks=2)
     wrnnet.build_model()
-    wrnnet.set_optimizer("Momentum")
-    wrnnet.set_loss("mae")
-    wrnnet.model_compile(0.01, decay=0.96, decay_steps=194)
-    wrnnet.train(cnd_train, cnd_test, batch_size=8, batch_size_test=97)
+    wrnnet.set_optimizer("Adam")
+    wrnnet.set_loss("cross_entropy")
+    wrnnet.model_compile(0.003, decay=0.96, decay_steps=1562)
+    wrnnet.train(cifar_train, cifar_test, batch_size=32, batch_size_test=100, epochs=15, sample_per_epoch=1562,
+                 summary_step=80, restore_model=False)

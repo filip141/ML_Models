@@ -30,7 +30,6 @@ class AlexNetModel(object):
                                               activation="relu", padding="valid"))
         self.net_model.add(LocalResponseNormalization(depth_radius=2, alpha=2e-05, beta=0.75, bias=1.0,
                                                       name="lrn_1_1"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.4, name='dropout_1_1'))
         self.net_model.add(MaxPoolingLayer(pool_size=[3, 3], stride=2, padding="valid", name="pooling_1_1"))
 
         # Layer 2
@@ -43,13 +42,11 @@ class AlexNetModel(object):
         self.net_model.add(net_node)
         self.net_model.add(LocalResponseNormalization(depth_radius=2, alpha=2e-05, beta=0.75, bias=1.0,
                                                       name="lrn_2_1"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.4, name='dropout_2_1'))
         self.net_model.add(MaxPoolingLayer(pool_size=[3, 3], stride=2, padding="valid", name="pooling_2_1"))
 
         # Layer 3
         self.net_model.add(ConvolutionalLayer([3, 3, 384], initializer="xavier", name='convo_layer_3_1', stride=1,
                                               activation="relu"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.4, name='dropout_3_1'))
 
         # Layer 4
         self.net_model.add(SplitterLayer(num_split=2))
@@ -59,7 +56,6 @@ class AlexNetModel(object):
         net_node.add(ConvolutionalLayer([3, 3, 192], initializer="xavier", name='convo_layer_4_2', stride=1,
                                         activation="relu"))
         self.net_model.add(net_node)
-        self.net_model.add(SpatialDropoutLayer(percent=0.4, name='dropout_4_1'))
 
         # Layer 5
         self.net_model.add(SplitterLayer(num_split=2))
@@ -69,14 +65,13 @@ class AlexNetModel(object):
         net_node.add(ConvolutionalLayer([3, 3, 128], initializer="xavier", name='convo_layer_5_2', stride=1,
                                         activation="relu"))
         self.net_model.add(net_node)
-        self.net_model.add(SpatialDropoutLayer(percent=0.4, name='dropout_5_1'))
         self.net_model.add(MaxPoolingLayer(pool_size=[3, 3], stride=2, padding="valid", name="pooling_2_1"))
 
         if model_classifier:
             self.add_model_classifier(optimizer, loss)
 
-    def model_compile(self, learning_rate):
-        self.net_model.build_model(learning_rate)
+    def model_compile(self, learning_rate, decay=None, decay_steps=100000):
+        self.net_model.build_model(learning_rate, decay, decay_steps)
 
     def add_model_classifier(self, optimizer=True, loss=True):
         # Layer 6
@@ -108,7 +103,7 @@ class AlexNetModel(object):
         self.net_model.add(layer)
 
     def train(self, train_iterator, test_iterator, train_step, test_step, restore_model=False, epochs=300,
-              embedding_num=None, early_stop=None, sample_per_epoch=391):
+              embedding_num=None, early_stop=None, sample_per_epoch=391, summary_step=20):
         if early_stop is not None:
             early_stop = {"accuracy": early_stop}
         if restore_model:
@@ -116,7 +111,7 @@ class AlexNetModel(object):
         self.net_model.train(train_iter=train_iterator, train_step=train_step, test_iter=test_iterator,
                              test_step=test_step, sample_per_epoch=sample_per_epoch, epochs=epochs,
                              embedding_num=embedding_num,
-                             early_stop=early_stop)
+                             early_stop=early_stop, summary_step=summary_step)
 
     def restore(self):
         self.net_model.restore()
@@ -136,7 +131,7 @@ class AlexNetModel(object):
                         self.net_model.sess.run(self.net_model.get_layer_by_name(t_name).weights.assign(t_w))
 
     def predict(self, img_path):
-        img = cv2.imread(img_path).astype(np.float32)
+        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB).astype(np.float32)
 
         img_shape = img.shape
         w_pos = random.randint(0, img_shape[1] - self.input_size[0])
@@ -151,31 +146,44 @@ class AlexNetModel(object):
 
 
 if __name__ == '__main__':
-    from cnn_models.iterators.live_dataset import LIVEDataset
-    dataset_path = "/home/phoenix/Datasets/Live2005"
-    cnd_train = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="227x227", patches_method='random',
-                            no_patches=1, is_train=True)
-    cnd_test = LIVEDataset(data_path=dataset_path, new_resolution=None, patches="227x227", patches_method='random',
-                           no_patches=1, is_train=False)
-    im_net_model = AlexNetModel(input_size=[227, 227, 3], output_size=1,
-                                log_path="/home/phoenix/tensor_logs/LiveDb",
-                                metrics=["mse", "mae"])
-    im_net_model.build_model(loss=False, optimizer=False, model_classifier=False)
+    # from cnn_models.iterators.live_dataset import LIVEDataset
+    from cnn_models.iterators.tid2013 import TID2013Dataset
+    dataset_path = "/home/filip141/Datasets/TID2013"
+    cnd_train = TID2013Dataset(data_path=dataset_path, new_resolution=None, patches="227x227", patches_method='random',
+                               no_patches=1, is_train=True)
+    cnd_test = TID2013Dataset(data_path=dataset_path, new_resolution=None, patches="227x227", patches_method='random',
+                              no_patches=1, is_train=False)
+    # live_path = "/home/filip141/Datasets/Live"
+    # cnd_train = LIVEDataset(data_path=live_path, new_resolution=None, patches="227x227", patches_method='random',
+    #                         no_patches=1, is_train=True)
+    # cnd_test = LIVEDataset(data_path=live_path, new_resolution=None, patches="227x227", patches_method='random',
+    #                        no_patches=1, is_train=False)
 
-    im_net_model.net_model.add(Flatten(name='flatten_6'))
-    im_net_model.net_model.add(FullyConnectedLayer(out_neurons=512, initializer="xavier", name='fully_connected_6_1'))
-    im_net_model.net_model.add(ReluLayer(name="relu_6_1"))
-    im_net_model.net_model.add(DropoutLayer(percent=0.5))
-    im_net_model.net_model.add(FullyConnectedLayer(out_neurons=512, initializer="xavier", name='fully_connected_7_1'))
-    im_net_model.net_model.add(ReluLayer(name="relu_7_1"))
-    im_net_model.net_model.add(DropoutLayer(percent=0.5))
-    im_net_model.net_model.add(FullyConnectedLayer(out_neurons=im_net_model.output_size, initializer="xavier",
-                                                   name='fully_connected_8_1'))
-    im_net_model.set_optimizer("SGD")
-    im_net_model.set_loss("mae")
-    im_net_model.model_compile(0.0002)
-    # del ALEXNET_MAPPING_TWO_STREAMS["fc6"]
-    # del ALEXNET_MAPPING_TWO_STREAMS["fc7"]
-    # del ALEXNET_MAPPING_TWO_STREAMS["fc8"]
-    # im_net_model.load_initial_weights("/home/phoenix/Weights/bvlc_alexnet.npy", ALEXNET_MAPPING_TWO_STREAMS)
-    im_net_model.train(cnd_train, cnd_test, train_step=4, test_step=49, epochs=246)
+    im_net_model = AlexNetModel(input_size=[227, 227, 3], output_size=1,
+                                log_path="/home/filip141/tensor_logs/TID2013Db",
+                                metrics=["mse", "mae"])
+    im_net_model.build_model(loss=False, optimizer=False, model_classifier=True)
+    im_net_model.set_optimizer("Momentum")
+    im_net_model.set_loss("mse")
+    im_net_model.model_compile(0.0001, decay=0.96, decay_steps=600)
+    im_net_model.restore()
+    # del ALEXNET_MAPPING_TWO_STREAMS['fc8']
+    # im_net_model.load_initial_weights("/home/filip141/Weights/bvlc_alexnet.npy", ALEXNET_MAPPING_TWO_STREAMS)
+    im_net_model.train(cnd_train, cnd_test, train_step=8, test_step=100, sample_per_epoch=300)
+
+    # im_net_model.restore()
+
+    # import scipy.stats
+    # from cnn_models.iterators.live_dataset import LIVEDataset
+
+    # live_path = "/home/filip141/Datasets/Live"
+    # cnd_train = LIVEDataset(data_path=live_path, new_resolution=None, patches="64x64", patches_method='random',
+    #                         no_patches=1, is_train=True)
+    # cm_mos = cnd_train.images_mos
+    #
+    # cnn_scores = []
+    # real_scores = []
+    # for img_path, mos_score in cm_mos:
+    #     cnn_scores.append(im_net_model.predict(img_path)[0])
+    #     real_scores.append(mos_score)
+    # print(scipy.stats.spearmanr(cnn_scores, real_scores))

@@ -3,7 +3,7 @@ import numpy as np
 from simple_network.models import GANScheme
 from simple_network.layers import DeconvolutionLayer, FullyConnectedLayer, ConvolutionalLayer, ReshapeLayer, \
     LeakyReluLayer, BatchNormalizationLayer, DropoutLayer, Flatten, SigmoidLayer, \
-    LinearLayer, ReluLayer, GlobalAveragePoolingLayer
+    LinearLayer, ReluLayer, GlobalAveragePoolingLayer, TanhLayer
 
 
 logging.basicConfig(level=logging.INFO)
@@ -19,54 +19,46 @@ class GANNetwork(GANScheme):
     def build_generator(self, generator):
         generator.add(FullyConnectedLayer([np.prod(self.generator_input_size), 4096], initializer="xavier",
                                           name='fully_connected_g_1'))
-        generator.add(ReluLayer(name="relu_1"))
+        generator.add(LeakyReluLayer(name="relu_1"))
         generator.add(ReshapeLayer(output_shape=[2, 2, 1024]))
         generator.add(DeconvolutionLayer([5, 5, 512], output_shape=[4, 4, 512], initializer="xavier",
                                          name='deconv_layer_g_2', stride=2))
         generator.add(BatchNormalizationLayer(name="batch_normalization_g_2"))
-        generator.add(DropoutLayer(percent=0.4, name="dropout_g_2"))
-        generator.add(ReluLayer(name="relu_2"))
+        generator.add(LeakyReluLayer(name="relu_2"))
 
         generator.add(DeconvolutionLayer([5, 5, 256], output_shape=[8, 8, 256], initializer="xavier",
                                          name='deconv_layer_g_3', stride=2))
         generator.add(BatchNormalizationLayer(name="batch_normalization_g_3"))
-        generator.add(DropoutLayer(percent=0.4, name="dropout_g_3"))
-        generator.add(ReluLayer(name="relu_3"))
+        generator.add(LeakyReluLayer(name="relu_3"))
 
         generator.add(DeconvolutionLayer([5, 5, 128], output_shape=[16, 16, 128], initializer="xavier",
                                          name='deconv_layer_g_4', stride=2))
         generator.add(BatchNormalizationLayer(name="batch_normalization_g_4"))
-        generator.add(DropoutLayer(percent=0.4, name="dropout_g_4"))
-        generator.add(ReluLayer(name="relu_4"))
+        generator.add(LeakyReluLayer(name="relu_4"))
 
         generator.add(DeconvolutionLayer([5, 5, 64], output_shape=[32, 32, 64], initializer="xavier",
                                          name='deconv_layer_g_5', stride=2))
         generator.add(BatchNormalizationLayer(name="batch_normalization_g_5"))
-        generator.add(DropoutLayer(percent=0.4, name="dropout_g_5"))
-        generator.add(ReluLayer(name="relu_5"))
+        generator.add(LeakyReluLayer(name="relu_5"))
         generator.add(DeconvolutionLayer([3, 3, 3], output_shape=[32, 32, 3], initializer="xavier",
                                          name='deconv_layer_g_6', stride=1))
-        generator.add(SigmoidLayer(name="sigmoid_g_3"))
+        generator.add(TanhLayer(name="tanh_g_5"))
 
     def build_discriminator(self, discriminator):
         discriminator.add(ConvolutionalLayer([5, 5, 128], initializer="xavier", name='convo_layer_d_1', stride=2))
         discriminator.add(BatchNormalizationLayer(name="batch_normalization_d_1"))
-        discriminator.add(DropoutLayer(percent=0.4, name="dropout_d_1"))
         discriminator.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_d_1"))
 
         discriminator.add(ConvolutionalLayer([5, 5, 256], initializer="xavier", name='convo_layer_d_2', stride=2))
         discriminator.add(BatchNormalizationLayer(name="batch_normalization_d_2"))
-        discriminator.add(DropoutLayer(percent=0.4, name="dropout_d_2"))
         discriminator.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_d_2"))
 
         discriminator.add(ConvolutionalLayer([5, 5, 512], initializer="xavier", name='convo_layer_d_3', stride=2))
         discriminator.add(BatchNormalizationLayer(name="batch_normalization_d_3"))
-        discriminator.add(DropoutLayer(percent=0.4, name="dropout_d_3"))
         discriminator.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_d_3"))
 
         discriminator.add(ConvolutionalLayer([5, 5, 1024], initializer="xavier", name='convo_layer_d_4', stride=2))
         discriminator.add(BatchNormalizationLayer(name="batch_normalization_d_4"))
-        discriminator.add(DropoutLayer(percent=0.4, name="dropout_d_4"))
         discriminator.add(LeakyReluLayer(alpha=0.1, name="leaky_relu_d_4"))
 
         discriminator.add(GlobalAveragePoolingLayer())
