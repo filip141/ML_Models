@@ -99,6 +99,6 @@ if __name__ == '__main__':
     gan.set_discriminator_optimizer("Adam")
     gan.set_generator_optimizer("Adam")
     gan.set_loss("gradient-penalty")
-    gan.model_compile(generator_learning_rate=0.001, discriminator_learning_rate=0.0001)
-    gan.train(ucf_train, train_step=4, epochs=300, sample_per_epoch=1000, restore_model=True,
+    gan.model_compile(generator_learning_rate=0.0001, discriminator_learning_rate=0.0001)
+    gan.train(ucf_train, train_step=4, epochs=500, sample_per_epoch=1000, restore_model=False,
               store_method=save_video)
