@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import tensorflow as tf
-from simple_network.models import GANScheme
+from simple_network.models import MMGANScheme
 from simple_network.layers import DeconvolutionLayer, FullyConnectedLayer, ConvolutionalLayer, ReshapeLayer, \
     LeakyReluLayer, SingleBatchNormLayer, DropoutLayer, Flatten, SigmoidLayer, \
     LinearLayer, ReluLayer, GlobalAveragePoolingLayer, TanhLayer
@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class GANNetwork(GANScheme):
+class GANNetwork(MMGANScheme):
 
     def __init__(self, generator_input_size, discriminator_input_size, log_path, batch_size=None):
         super(GANNetwork, self).__init__(generator_input_size, discriminator_input_size, log_path, batch_size)
@@ -80,9 +80,9 @@ if __name__ == '__main__':
     train_path = "/home/filip141/Datasets/CelebA"
     celeba = CelebADataset(data_path=train_path, resolution="64x64")
     gan = GANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 3],
-                     log_path="/home/filip141/tensor_logs/GAN_CelebA", batch_size=64)
+                     log_path="/home/filip141/tensor_logs/GANQP_CelebA", batch_size=64)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
-    gan.set_loss("js-non-saturation")
+    gan.set_loss("dragan", label_smooth=True, stdev=0.15)
     gan.model_compile(generator_learning_rate=0.0004, discriminator_learning_rate=0.000025)
     gan.train(celeba, train_step=64, epochs=300, sample_per_epoch=1000, restore_model=False)

@@ -1,7 +1,10 @@
 import os
 import cv2
+import signal
 import random
 import numpy as np
+import subprocess as sp
+
 
 CIFAR10_LABELS = {"airplane": 0, "automobile": 1, "bird": 2, "cat": 3, "deer": 4, "dog": 5,
                   "frog": 6, "horse": 7, "ship": 8, "truck": 9}
@@ -51,3 +54,70 @@ class ImageIterator(object):
             batch_x[img_idx] = ds_img
         return batch_x, batch_y
 
+
+class FFMPEGVideoReader(object):
+
+    def __init__(self, ffmpeg_bin, video_path, resolution="1920x1080"):
+        self.ffmpeg_bin = ffmpeg_bin
+        self.video_path = video_path
+        self.resolution = [int(x) for x in resolution.split("x")]
+        self.command = [self.ffmpeg_bin,
+                        '-i', self.video_path,
+                        '-f', 'image2pipe',
+                        '-pix_fmt', 'rgb24',
+                        '-vcodec', 'rawvideo', '-']
+        devnull = open(os.devnull, "w")
+        self.ffmpeg_pipe = sp.Popen(self.command, stdout=sp.PIPE, bufsize=10**8, stderr=devnull)
+
+    def length(self, fps):
+        command = [self.ffmpeg_bin,
+                   '-i', self.video_path]
+        result = sp.Popen(command, stdout=sp.PIPE, stderr=sp.STDOUT)
+        duration = [x.decode("utf-8").split(",")[0].lstrip() for x in result.stdout.readlines()
+                    if "Duration" in str(x)][0].split(": ")[1].split(":")
+        duration = int(duration[0]) * 3600 + int(duration[1]) * 60 + float(duration[2])
+        return int(duration * fps)
+
+    def seek(self, number):
+        self.ffmpeg_pipe.stdout.read(np.prod(self.resolution) * 3 * number)
+
+    def next_frame(self):
+        # Read bytes from ffmpeg pipe
+        raw_image = self.ffmpeg_pipe.stdout.read(np.prod(self.resolution) * 3)
+
+        # Convert to uint8 and reshape image
+        image = np.fromstring(raw_image, dtype='uint8')
+        if image.size == 0:
+            return None
+        image = image.reshape((self.resolution[1], self.resolution[0], 3))
+        self.ffmpeg_pipe.stdout.flush()
+        return image
+
+    def kill(self):
+        self.ffmpeg_pipe.kill()
+
+
+class FFMPEGVideoWritter(object):
+
+    def __init__(self, ffmpeg_bin, video_path, resolution="1920x1080"):
+        self.ffmpeg_bin = ffmpeg_bin
+        self.video_path = video_path
+        self.resolution = [int(x) for x in resolution.split("x")]
+        self.command = [self.ffmpeg_bin, '-y',
+                        '-f', 'rawvideo',
+                        '-vcodec', 'rawvideo',
+                        '-s', resolution,
+                        '-pix_fmt', 'rgb24',
+                        '-r', '24',  '-i', '-',
+                        '-an',
+                        '-vcodec', 'mpeg4',
+                        video_path]
+        self.ffmpeg_pipe = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE)
+
+    def save_frame(self, data):
+        self.ffmpeg_pipe.stdin.write(data.tobytes())
+
+    def kill(self):
+        self.ffmpeg_pipe.stdin.close()
+        self.ffmpeg_pipe.stderr.close()
+        self.ffmpeg_pipe.kill()
