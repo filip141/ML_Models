@@ -18,44 +18,32 @@ class CNNCifar10(object):
     def build_model(self):
         # Layer 1
         self.net_model.add(ConvolutionalLayer([3, 3, 48], initializer="xavier", name='convo_layer_1'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1"))
-        self.net_model.add(LeakyReluLayer(name="leaky_1"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.2, name="dropout_1"))
-
+        self.net_model.add(ReluLayer(name="relu_1"))
         self.net_model.add(ConvolutionalLayer([3, 3, 48], initializer="xavier", name='convo_layer_2'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_2"))
-        self.net_model.add(LeakyReluLayer(name="leaky_2"))
+        self.net_model.add(ReluLayer(name="relu_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_2"))
+        self.net_model.add(DropoutLayer(percent=0.25, name="dropout_2"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 96], initializer="xavier", name='convo_layer_3'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3"))
-        self.net_model.add(LeakyReluLayer(name="leaky_3"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.2, name="dropout_3"))
-
+        self.net_model.add(ReluLayer(name="relu_3"))
         self.net_model.add(ConvolutionalLayer([3, 3, 96], initializer="xavier", name='convo_layer_4'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_4"))
-        self.net_model.add(LeakyReluLayer(name="leaky_4"))
+        self.net_model.add(ReluLayer(name="relu_4"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_4"))
+        self.net_model.add(DropoutLayer(percent=0.25, name="dropout_4"))
 
         self.net_model.add(ConvolutionalLayer([3, 3, 192], initializer="xavier", name='convo_layer_5'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_5"))
-        self.net_model.add(LeakyReluLayer(name="leaky_5"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.2, name="dropout_5"))
-
+        self.net_model.add(ReluLayer(name="relu_5"))
         self.net_model.add(ConvolutionalLayer([3, 3, 192], initializer="xavier", name='convo_layer_6'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_6"))
-        self.net_model.add(LeakyReluLayer(name="leaky_6"))
+        self.net_model.add(ReluLayer(name="relu_6"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_6"))
 
         self.net_model.add(Flatten(name="flatten_7"))
         self.net_model.add(FullyConnectedLayer(out_neurons=512, initializer="xavier", name='fully_connected_7'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_7"))
-        self.net_model.add(LeakyReluLayer(name="leaky_7"))
+        self.net_model.add(ReluLayer(name="relu_7"))
         self.net_model.add(DropoutLayer(percent=0.5, name="dropout_7"))
 
         self.net_model.add(FullyConnectedLayer(out_neurons=256, initializer="xavier", name='fully_connected_8'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_8"))
-        self.net_model.add(LeakyReluLayer(name="leaky_8"))
+        self.net_model.add(ReluLayer(name="relu_8"))
         self.net_model.add(DropoutLayer(percent=0.5, name="dropout_8"))
 
         self.net_model.add(FullyConnectedLayer(out_neurons=self.output_size, initializer="xavier",
@@ -92,16 +80,16 @@ class CNNCifar10(object):
 
 if __name__ == '__main__':
     from cnn_models.iterators.cifar import CIFARDataset
-    cifar_train_path = "/home/filip141/Datasets/cifar/train"
-    cifar_test_path = "/home/filip141/Datasets/cifar/test"
+    cifar_train_path = "/home/filip/Datasets/cifar/train"
+    cifar_test_path = "/home/filip/Datasets/cifar/test"
     cifar_train = CIFARDataset(data_path=cifar_train_path, resolution="32x32", force_overfit=False)
     cifar_test = CIFARDataset(data_path=cifar_test_path, resolution="32x32", force_overfit=False)
     cnn_net = CNNCifar10(input_size=[32, 32, 3], output_size=10,
-                         log_path="/home/filip141/tensor_logs/CNN_CIFAR",
+                         log_path="/home/filip/tensor_logs/CNN_CIFAR",
                          metrics=["accuracy", "cross_entropy"])
     cnn_net.build_model()
-    cnn_net.set_optimizer("Momentum")
+    cnn_net.set_optimizer("Adam")
     cnn_net.set_loss("cross_entropy")
-    cnn_net.model_compile(0.01, decay=0.96, decay_steps=50000)
-    cnn_net.train(cifar_train, cifar_test, batch_size_test=100, batch_size=8, epochs=15, restore_model=False,
-                  sample_per_epoch=6250, summary_step=40)
+    cnn_net.model_compile(0.001)
+    cnn_net.train(cifar_train, cifar_test, batch_size_test=128, batch_size=128, epochs=200, restore_model=True,
+                  sample_per_epoch=391, summary_step=40)
