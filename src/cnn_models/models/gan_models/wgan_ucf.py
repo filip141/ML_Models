@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 def save_video(data, epoch_id):
-    video_path = "/home/filip141/tensor_logs/GAN_UFC/video_{}.h264".format(epoch_id)
-    mp4_video_path = "/home/filip141/tensor_logs/GAN_UFC/video_{}.mp4".format(epoch_id)
+    video_path = "/home/filip141/tensor_logs/WGAN_UFC/video_{}.h264".format(epoch_id)
+    mp4_video_path = "/home/filip141/tensor_logs/WGAN_UFC/video_{}.mp4".format(epoch_id)
     ffmpeg = FFMPEGVideoWritter("/usr/bin/ffmpeg", video_path, resolution="64x64")
     for frame_idx in range(0, data.shape[3]):
         ffmpeg.save_frame((data[0, :, :, frame_idx, :] * 255.0).astype(np.uint8))
@@ -91,11 +91,11 @@ if __name__ == '__main__':
     from cnn_models.iterators.ucf import UCF101
 
     tf.set_random_seed(100)
-    ucf_train = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-101",
+    ucf_train = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-5",
                        resolution="320x240", resize="64x64", num_frames=48, min_frames=48)
     gan = WGANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 48, 3],
                       log_path="/home/filip141/tensor_logs/WGAN_UFC", batch_size=4, labels='convo-semi-supervised',
-                      labels_size=101)
+                      labels_size=5)
     gan.set_discriminator_optimizer("Adam")
     gan.set_generator_optimizer("Adam")
     gan.set_loss("gradient-penalty")
