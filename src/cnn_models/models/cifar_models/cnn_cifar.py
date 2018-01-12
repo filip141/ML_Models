@@ -80,16 +80,19 @@ class CNNCifar10(object):
 
 if __name__ == '__main__':
     from cnn_models.iterators.cifar import CIFARDataset
-    cifar_train_path = "/home/filip/Datasets/cifar/train"
-    cifar_test_path = "/home/filip/Datasets/cifar/test"
-    cifar_train = CIFARDataset(data_path=cifar_train_path, resolution="32x32", force_overfit=False)
+    from cnn_models.iterators.tools import ImageIterator
+    cifar_train_path = "/home/phoenix/Datasets/cifar/train"
+    cifar_test_path = "/home/phoenix/Datasets/cifar/test"
+    cifar_train = ImageIterator(CIFARDataset(data_path=cifar_train_path, resolution="32x32", force_overfit=False),
+                                rotate=15, translate=3, max_zoom=3, adjust_contrast=0.2, additive_noise=0.1,
+                                adjust_brightness=0.5)
     cifar_test = CIFARDataset(data_path=cifar_test_path, resolution="32x32", force_overfit=False)
     cnn_net = CNNCifar10(input_size=[32, 32, 3], output_size=10,
-                         log_path="/home/filip/tensor_logs/CNN_CIFAR",
+                         log_path="/home/phoenix/tensor_logs/CNN_CIFAR",
                          metrics=["accuracy", "cross_entropy"])
     cnn_net.build_model()
     cnn_net.set_optimizer("Adam")
     cnn_net.set_loss("cross_entropy")
-    cnn_net.model_compile(0.001)
-    cnn_net.train(cifar_train, cifar_test, batch_size_test=128, batch_size=128, epochs=200, restore_model=True,
+    cnn_net.model_compile(0.001, decay=0.96, decay_steps=391)
+    cnn_net.train(cifar_train, cifar_test, batch_size_test=128, batch_size=128, epochs=200, restore_model=False,
                   sample_per_epoch=391, summary_step=40)

@@ -1,8 +1,7 @@
 import tensorflow as tf
 from simple_network.models import NetworkParallel
 from simple_network.layers import BatchNormalizationLayer, FullyConnectedLayer, \
-     Flatten, LinearLayer, ConvolutionalLayer, DropoutLayer, ReluLayer, MaxPoolingLayer, SpatialDropoutLayer, \
-    SwishLayer
+     Flatten, LinearLayer, ConvolutionalLayer, DropoutLayer, ReluLayer, MaxPoolingLayer, SingleBatchNormLayer
 
 
 class CNNNRQIQA(object):
@@ -18,26 +17,23 @@ class CNNNRQIQA(object):
 
     def build_model(self):
         # Layer 1
-        self.net_model.add(ConvolutionalLayer([3, 3, 32], initializer="xavier", name='convo_layer_1'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_1"))
-        self.net_model.add(SwishLayer(name="swish_1"))
+        self.net_model.add(ConvolutionalLayer([3, 3, 16], initializer="xavier", name='convo_layer_1'))
+        self.net_model.add(SingleBatchNormLayer(name="batch_normalization_1"))
+        self.net_model.add(ReluLayer(name="relu_1"))
 
-        self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_2'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_2"))
-        self.net_model.add(SwishLayer(name="swish_2"))
+        self.net_model.add(ConvolutionalLayer([3, 3, 32], initializer="xavier", name='convo_layer_2'))
+        self.net_model.add(SingleBatchNormLayer(name="batch_normalization_2"))
+        self.net_model.add(ReluLayer(name="relu_2"))
         self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_2"))
-        self.net_model.add(SpatialDropoutLayer(percent=0.4, name="dropout_2"))
-        #
-        # self.net_model.add(ConvolutionalLayer([3, 3, 128], initializer="xavier", name='convo_layer_3'))
-        # self.net_model.add(BatchNormalizationLayer(name="batch_normalization_3"))
-        # self.net_model.add(SwishLayer(name="swish_3"))
-        # self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_3"))
-        # self.net_model.add(SpatialDropoutLayer(percent=0.4, name="dropout_3"))
+
+        self.net_model.add(ConvolutionalLayer([3, 3, 64], initializer="xavier", name='convo_layer_3'))
+        self.net_model.add(SingleBatchNormLayer(name="batch_normalization_3"))
+        self.net_model.add(ReluLayer(name="relu_3"))
+        self.net_model.add(MaxPoolingLayer(pool_size=[2, 2], stride=2, padding="valid", name="pooling_3"))
 
         self.net_model.add(Flatten(name="flatten_6"))
         self.net_model.add(FullyConnectedLayer(out_neurons=256, initializer="xavier", name='fully_connected_6'))
-        self.net_model.add(BatchNormalizationLayer(name="batch_normalization_6"))
-        self.net_model.add(SwishLayer(name="swish_6"))
+        self.net_model.add(ReluLayer(name="relu_6"))
         self.net_model.add(DropoutLayer(percent=0.5, name="dropout_6"))
 
         self.net_model.add(FullyConnectedLayer(out_neurons=self.output_size, initializer="xavier",
@@ -84,13 +80,14 @@ def convolutional_learning_test(learning_rate, batch_size):
     cnn_nrq_iqa.set_optimizer("SGD")
     cnn_nrq_iqa.set_loss("mae")
     cnn_nrq_iqa.model_compile(learning_rate)
-    cnn_nrq_iqa.train(cnd_train, cnd_test, train_step=batch_size, test_step=49, epochs=5)
+    cnn_nrq_iqa.train(cnd_train, cnd_test, train_step=batch_size, test_step=49, epochs=50)
     tf.reset_default_graph()
 
 
 if __name__ == '__main__':
-    import random
-    for n in range(0, 15):
-        learning_rate = random.randint(1, 100) / 1000.0
-        batch_size = random.randint(1, 32)
-        convolutional_learning_test(learning_rate, batch_size)
+    convolutional_learning_test(0.0005, 16)
+    # import random
+    # for n in range(0, 15):
+    #     learning_rate = random.randint(1, 100) / 1000.0
+    #     batch_size = random.randint(1, 32)
+    #     convolutional_learning_test(learning_rate, batch_size)

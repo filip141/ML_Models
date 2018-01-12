@@ -12,11 +12,15 @@ CIFAR10_LABELS = {"airplane": 0, "automobile": 1, "bird": 2, "cat": 3, "deer": 4
 
 class ImageIterator(object):
 
-    def __init__(self, iterator, rotate=10, translate=10, max_zoom=5):
+    def __init__(self, iterator, rotate=10, translate=10, max_zoom=5, additive_noise=0, adjust_brightness=0,
+                 adjust_contrast=1.0):
         self.iterator = iterator
         self.rotate = rotate
         self.max_zoom = max_zoom
+        self.additive_noise = additive_noise
         self.translate = translate
+        self.adjust_brightness = adjust_brightness
+        self.adjust_contrast = adjust_contrast
 
     def next_batch(self, number):
         # iterate over elements
@@ -28,22 +32,34 @@ class ImageIterator(object):
             random_rotate = random.randint(0, 1)
             random_transform = random.randint(0, 1)
             random_zoom = random.randint(0, 1)
+            random_noise = random.randint(0, 1)
+            random_brightness = random.randint(0, 1)
+            random_contrast = random.randint(0, 1)
+            if random_contrast == 1:
+                contrast_val = random.randint(0, int(self.adjust_contrast * 100))
+                ds_img = (1 + contrast_val / 100.0) * ds_img
+            if random_brightness == 1:
+                brightness_val = random.randint(0, int(self.adjust_brightness * 100))
+                ds_img = ds_img + brightness_val / 100.0
             if random_flip == 1:
                 ds_img = cv2.flip(ds_img, 1)
-            elif random_rotate == 1:
+            if random_noise == 1:
+                gaussian_noise = np.random.normal(scale=self.additive_noise, size=ds_img.shape)
+                ds_img += gaussian_noise
+            if random_rotate == 1:
                 angle_rot = self.rotate
                 angle = random.randint(0, 2 * angle_rot) - angle_rot
                 image_center = tuple(np.array(ds_img.shape[:2]) / 2)
                 rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
                 ds_img = cv2.warpAffine(ds_img, rot_mat, ds_img.shape[:2], flags=cv2.INTER_LINEAR)
-            elif random_transform == 1:
+            if random_transform == 1:
                 move_px = self.translate
                 m1 = random.randint(0, 2 * move_px) - move_px
                 m2 = random.randint(0, 2 * move_px) - move_px
                 num_rows, num_cols = ds_img.shape[:2]
                 translation_matrix = np.float32([[1, 0, m1], [0, 1, m2]])
                 ds_img = cv2.warpAffine(ds_img, translation_matrix, (num_cols, num_rows))
-            elif random_zoom == 1:
+            if random_zoom == 1:
                 m1_1 = random.randint(1, self.max_zoom)
                 m1_2 = random.randint(1, self.max_zoom)
                 m2_1 = random.randint(1, self.max_zoom)
@@ -121,3 +137,14 @@ class FFMPEGVideoWritter(object):
         self.ffmpeg_pipe.stdin.close()
         self.ffmpeg_pipe.stderr.close()
         self.ffmpeg_pipe.kill()
+
+
+if __name__ == '__main__':
+    from cnn_models.iterators.cifar import CIFARDataset
+    from cnn_models.iterators.tools import ImageIterator
+    cifar_train_path = "/home/phoenix/Datasets/cifar/train"
+    cifar_test_path = "/home/phoenix/Datasets/cifar/test"
+    cifar_train = ImageIterator(CIFARDataset(data_path=cifar_train_path, resolution="32x32", force_overfit=False),
+                                rotate=15, translate=3, max_zoom=3, additive_noise=0.1)
+    img = cifar_train.next_batch(1)
+    import matplotlib.pyplot as plt
