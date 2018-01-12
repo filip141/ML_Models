@@ -19,18 +19,19 @@ class UCF101(object):
         self.resize = [int(x) for x in resize.split("x")]
         self.resolution = [int(x) for x in resolution.split("x")]
         self.categories = self.get_categories()
+        self.categories_number = len(self.categories)
 
     def get_categories(self):
         dirs_in_path = sorted(os.listdir(self.data_path))
         return dirs_in_path
 
     def next_batch(self, number):
-        batch_labels = np.zeros((number, 101))
+        batch_labels = np.zeros((number, self.categories_number))
         batch_matrix = np.zeros((number, self.resize[1], self.resize[0], self.num_frames, 3))
 
         for movie_idx in range(number):
             # Get category
-            cat_idx = random.randint(0, 100)
+            cat_idx = random.randint(0, self.categories_number - 1)
             batch_labels[movie_idx, cat_idx] = 1.0
 
             # Specify category path
@@ -60,7 +61,7 @@ class UCF101(object):
 
 
 if __name__ == '__main__':
-    ucf = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-101", resolution="320x240",
+    ucf = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-5", resolution="320x240",
                  resize="128x128")
     movies = ucf.next_batch(10)
     print(movies[1])

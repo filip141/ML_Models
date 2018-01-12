@@ -95,14 +95,14 @@ if __name__ == '__main__':
     from cnn_models.iterators.ucf import UCF101
 
     tf.set_random_seed(100)
-    ucf_train = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-101",
+    ucf_train = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-5",
                        resolution="320x240", resize="64x64", num_frames=48, min_frames=48)
     gan = GANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 48, 3],
-                     log_path="/home/filip141/tensor_logs/GAN_UFC", batch_size=4, labels='convo-semi-supervised',
-                     labels_size=101)
+                     log_path="/home/filip141/tensor_logs/GAN_UFC_5", batch_size=8, labels='convo-semi-supervised',
+                     labels_size=5)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.set_loss("js-non-saturation", label_smooth=True)
-    gan.model_compile(generator_learning_rate=0.001, discriminator_learning_rate=0.0001)
-    gan.train(ucf_train, train_step=4, epochs=300, sample_per_epoch=1000, restore_model=True,
+    gan.model_compile(generator_learning_rate=0.0004, discriminator_learning_rate=0.000025)
+    gan.train(ucf_train, train_step=8, epochs=300, sample_per_epoch=1000, restore_model=False,
               store_method=save_video)
