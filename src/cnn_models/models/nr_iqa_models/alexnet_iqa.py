@@ -122,5 +122,5 @@ if __name__ == '__main__':
     im_net_model.build_model(loss=False, optimizer=False, model_classifier=True)
     im_net_model.set_optimizer("Momentum")
     im_net_model.set_loss("mae")
-    im_net_model.model_compile(0.005, decay=0.96, decay_steps=94)
+    im_net_model.model_compile(0.0007, decay=0.96, decay_steps=94)
     im_net_model.train(cnd_train, cnd_test, train_step=32, test_step=32, sample_per_epoch=94)
