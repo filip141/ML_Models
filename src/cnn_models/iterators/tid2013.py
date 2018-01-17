@@ -57,7 +57,7 @@ class TID2013Dataset(object):
         img_idx = 0
         while img_idx < number:
             im_path, im_mos = img_base[self.position]
-            live_img = cv2.cvtColor(cv2.imread(im_path), cv2.COLOR_BGR2RGB)
+            live_img = cv2.cvtColor(cv2.imread(im_path.rstrip()), cv2.COLOR_BGR2RGB)
             if self.new_resolution is None:
                 live_img_trans = live_img
             else:

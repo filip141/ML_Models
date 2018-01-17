@@ -1,6 +1,6 @@
 import os
 import cv2
-import signal
+import copy
 import random
 import numpy as np
 import subprocess as sp
@@ -12,29 +12,58 @@ CIFAR10_LABELS = {"airplane": 0, "automobile": 1, "bird": 2, "cat": 3, "deer": 4
 
 class ImageIterator(object):
 
-    def __init__(self, iterator, rotate=10, translate=10, max_zoom=5, additive_noise=0, adjust_brightness=0,
-                 adjust_contrast=1.0):
+    def __init__(self, iterator, rotate=0, translate=0, max_zoom=0, additive_noise=0, adjust_brightness=0,
+                 adjust_contrast=0, preprocess="none", additional_data={}):
         self.iterator = iterator
+        self.preprocess = preprocess
         self.rotate = rotate
         self.max_zoom = max_zoom
         self.additive_noise = additive_noise
         self.translate = translate
         self.adjust_brightness = adjust_brightness
         self.adjust_contrast = adjust_contrast
+        self.additional_data = additional_data
+
+    def preprocess_img(self, batch_x):
+        eps = 0.0001
+        if self.preprocess == "none":
+            return batch_x
+        elif self.preprocess == "lcn":
+            k_param = self.additional_data.get("k_param", 7)
+            ds_img_shape = batch_x[0].shape
+            new_batch = copy.deepcopy(batch_x)
+            for h_idx in range(ds_img_shape[0]):
+                for w_idx in range(ds_img_shape[1]):
+                    h_start = h_idx - int((k_param - 1) / 2.)
+                    h_start = h_start if h_start >= 0 else 0
+                    h_end = h_idx + int((k_param - 1) / 2.)
+                    h_end = h_end if h_end < ds_img_shape[0] else ds_img_shape[0] - 1
+
+                    w_start = w_idx - int((k_param - 1) / 2.)
+                    w_start = w_start if w_start >= 0 else 0
+                    w_end = w_idx + int((k_param - 1) / 2.)
+                    w_end = w_end if w_end < ds_img_shape[1] else ds_img_shape[1] - 1
+
+                    img_patch = batch_x[:, h_start: h_end, w_start: w_end, :]
+                    patch_mean = np.mean(img_patch, axis=(1, 2))
+                    patch_std = np.std(img_patch, axis=(1, 2))
+                    new_batch[:, h_idx, w_idx, :] = (new_batch[:, h_idx, w_idx, :] - patch_mean) / (patch_std + eps)
+            return new_batch
 
     def next_batch(self, number):
         # iterate over elements
         batch_x, batch_y = self.iterator.next_batch(number=number)
+        batch_x = self.preprocess_img(batch_x)
         res_tuple = batch_x.shape[1:3]
         for img_idx in range(1, number):
             ds_img = batch_x[img_idx]
             random_flip = random.randint(0, 1)
-            random_rotate = random.randint(0, 1)
-            random_transform = random.randint(0, 1)
-            random_zoom = random.randint(0, 1)
-            random_noise = random.randint(0, 1)
-            random_brightness = random.randint(0, 1)
-            random_contrast = random.randint(0, 1)
+            random_rotate = random.randint(0, 1) if self.rotate != 0 else 0
+            random_transform = random.randint(0, 1) if self.translate != 0 else 0
+            random_zoom = random.randint(0, 1) if self.max_zoom != 0 else 0
+            random_noise = random.randint(0, 1) if self.additive_noise != 0 else 0
+            random_brightness = random.randint(0, 1) if self.adjust_brightness != 0 else 0
+            random_contrast = random.randint(0, 1) if self.adjust_contrast != 0 else 0
             if random_contrast == 1:
                 contrast_val = random.randint(0, int(self.adjust_contrast * 100))
                 ds_img = (1 + contrast_val / 100.0) * ds_img
