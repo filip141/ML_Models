@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 def save_video(data, epoch_id):
-    video_path = "/home/filip141/tensor_logs/GAN_UFC/video_{}.h264".format(epoch_id)
-    mp4_video_path = "/home/filip141/tensor_logs/GAN_UFC/video_{}.mp4".format(epoch_id)
+    video_path = "/home/filip141/tensor_logs/GAN_UFC_5/video_{}.h264".format(epoch_id)
+    mp4_video_path = "/home/filip141/tensor_logs/GAN_UFC_5/video_{}.mp4".format(epoch_id)
     ffmpeg = FFMPEGVideoWritter("/usr/bin/ffmpeg", video_path, resolution="64x64")
     for frame_idx in range(0, data.shape[3]):
         ffmpeg.save_frame((data[0, :, :, frame_idx, :] * 255.0).astype(np.uint8))
@@ -98,11 +98,11 @@ if __name__ == '__main__':
     ucf_train = UCF101(ffmpeg_path="/usr/bin/ffmpeg", data_path="/home/filip141/Datasets/UCF-5",
                        resolution="320x240", resize="64x64", num_frames=48, min_frames=48)
     gan = GANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 48, 3],
-                     log_path="/home/filip141/tensor_logs/GAN_UFC_5", batch_size=8, labels='convo-semi-supervised',
+                     log_path="/home/filip141/tensor_logs/GAN_UFC_5", batch_size=12, labels='convo-semi-supervised',
                      labels_size=5)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.set_loss("js-non-saturation", label_smooth=True)
-    gan.model_compile(generator_learning_rate=0.0004, discriminator_learning_rate=0.000025)
-    gan.train(ucf_train, train_step=8, epochs=300, sample_per_epoch=1000, restore_model=False,
+    gan.model_compile(generator_learning_rate=0.0002, discriminator_learning_rate=0.0001)
+    gan.train(ucf_train, train_step=12, epochs=300, sample_per_epoch=1000, restore_model=True,
               store_method=save_video)
