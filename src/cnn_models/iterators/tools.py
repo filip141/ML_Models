@@ -28,6 +28,17 @@ class ImageIterator(object):
         eps = 0.0001
         if self.preprocess == "none":
             return batch_x
+        elif self.preprocess == "gcn":
+            ds_img_shape = batch_x[0].shape
+            mean_x = np.mean(batch_x, axis=(1, 2, 3))[:, np.newaxis, np.newaxis, np.newaxis]
+            mean_x = mean_x.repeat(ds_img_shape[0], axis=1)
+            mean_x = mean_x.repeat(ds_img_shape[1], axis=2)
+            mean_x = mean_x.repeat(3, axis=3)
+            stdev = np.std(batch_x, axis=(1, 2, 3))[:, np.newaxis, np.newaxis, np.newaxis]
+            stdev = stdev.repeat(ds_img_shape[0], axis=1)
+            stdev = stdev.repeat(ds_img_shape[1], axis=2)
+            stdev = stdev.repeat(3, axis=3)
+            return (batch_x - mean_x) / (stdev + eps)
         elif self.preprocess == "lcn":
             k_param = self.additional_data.get("k_param", 7)
             ds_img_shape = batch_x[0].shape

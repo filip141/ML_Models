@@ -84,8 +84,8 @@ if __name__ == '__main__':
     cifar_train_path = "/home/phoenix/Datasets/cifar/train"
     cifar_test_path = "/home/phoenix/Datasets/cifar/test"
     cifar_train = ImageIterator(CIFARDataset(data_path=cifar_train_path, resolution="32x32", force_overfit=False),
-                                rotate=15, translate=3, max_zoom=3, adjust_contrast=0.2, additive_noise=0.1,
-                                adjust_brightness=0.5)
+                                rotate=15, translate=3, max_zoom=3, adjust_contrast=0.2, additive_noise=0.02,
+                                adjust_brightness=0.15)
     cifar_test = CIFARDataset(data_path=cifar_test_path, resolution="32x32", force_overfit=False)
     cnn_net = CNNCifar10(input_size=[32, 32, 3], output_size=10,
                          log_path="/home/phoenix/tensor_logs/CNN_CIFAR",
