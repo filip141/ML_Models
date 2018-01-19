@@ -82,7 +82,7 @@ if __name__ == '__main__':
     class_names_path = '/home/filip/Datasets/StanfordDogs/class_names.txt'
     im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
                                train_set=True, resize_img="64x64")
-    gan = GANNetwork(generator_input_size=[100, ], discriminator_input_size=[64, 64, 3],
+    gan = GANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 3],
                      log_path="/home/filip/tensor_logs/GAN_DOGS", batch_size=64, labels='convo-semi-supervised',
                      labels_size=120)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
