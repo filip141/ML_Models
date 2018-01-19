@@ -84,5 +84,5 @@ if __name__ == '__main__':
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.set_loss("dragan", label_smooth=True, stdev=0.15)
-    gan.model_compile(generator_learning_rate=0.0004, discriminator_learning_rate=0.000025)
+    gan.model_compile(generator_learning_rate=0.0004, discriminator_learning_rate=0.0002)
     gan.train(celeba, train_step=64, epochs=300, sample_per_epoch=1000, restore_model=False)
