@@ -8,8 +8,7 @@ from xml.dom import minidom
 class DogsDataset(object):
 
     def __init__(self, data_path="./Images", labels_path="./Annotation", class_names="./class_names.txt",
-                 resize_img="64x64", train_set=True, force_overfit=False, normalize_to_one=False):
-        self.normalize_to_one = normalize_to_one
+                 resize_img="64x64", train_set=True, force_overfit=False):
         self.data_path = data_path
         self.labels_path = labels_path
         self.class_names = class_names
@@ -50,7 +49,7 @@ class DogsDataset(object):
         batch_labels = np.zeros((number, len(self.class_dict)))
         batch_matrix = np.zeros((number, self.res_tuple[0], self.res_tuple[1], 3))
         first_one_hot_labels[self.class_dict[first_label]] = 1.0
-        batch_matrix[0] = (first_img_res.astype('float32') - np.mean(first_img_res)) / np.std(first_img_res)
+        batch_matrix[0] = first_img_res / 255.
         batch_labels[0] = first_one_hot_labels
         self.position += 1
         self.position = self.position if self.position < len(self.file_list) else 0
@@ -78,10 +77,7 @@ class DogsDataset(object):
 
             one_hot_labels = np.zeros((len(self.class_dict),))
             one_hot_labels[self.class_dict[img_label]] = 1.0
-            if self.normalize_to_one:
-                batch_matrix[img_idx] = img_res.astype('float32') / np.max(img_res)
-            else:
-                batch_matrix[img_idx] = (img_res.astype('float32') - np.mean(img_res)) / np.std(img_res)
+            batch_matrix[img_idx] = img_res / 255.
             batch_labels[img_idx] = one_hot_labels
             self.position += 1
             self.position = self.position if self.position < len(self.file_list) else 0
