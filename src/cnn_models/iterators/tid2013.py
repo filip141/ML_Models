@@ -66,7 +66,7 @@ class TID2013Dataset(object):
 
             # Return image or patches
             if self.patches is None:
-                batch_matrix[img_idx] = live_img_trans
+                batch_matrix[img_idx] = live_img_trans / 255.
                 batch_labels[img_idx] = im_mos
                 img_idx += 1
             else:
@@ -80,7 +80,7 @@ class TID2013Dataset(object):
                                   im_x * self.patch_res[0]: (im_x + 1) * self.patch_res[0],
                                   im_y * self.patch_res[1]: (im_y + 1) * self.patch_res[1]
                                   ]
-                            batch_matrix[img_idx] = img
+                            batch_matrix[img_idx] = img / 255.
                             batch_labels[img_idx] = im_mos
                             img_idx += 1
                             if img_idx > number:
@@ -90,7 +90,7 @@ class TID2013Dataset(object):
                         w_pos = random.randint(0, img_shape[1] - self.patch_res[0])
                         h_pos = random.randint(0, img_shape[0] - self.patch_res[1])
                         img = live_img_trans[h_pos:h_pos + self.patch_res[1], w_pos:w_pos + self.patch_res[0]]
-                        batch_matrix[img_idx] = img
+                        batch_matrix[img_idx] = img / 255.
                         batch_labels[img_idx] = im_mos
                         img_idx += 1
                         if img_idx >= number:

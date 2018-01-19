@@ -20,7 +20,7 @@ class AlexNetModel(object):
 
     def build_model(self, model_classifier=True, optimizer=True, loss=True):
         # Layer 1
-        standard_dev = 0.01
+        standard_dev = 0.012
         self.net_model.add(ConvolutionalLayer([11, 11, 16], initializer="normal", name='convo_layer_1_1', stride=4,
                                               padding="valid", stddev=standard_dev))
         self.net_model.add(LeakyReluLayer(name="leaky_relu_1_1"))
@@ -118,7 +118,7 @@ class AlexNetModel(object):
 if __name__ == '__main__':
     from cnn_models.iterators.tools import ImageIterator
     from cnn_models.iterators.tid2013 import TID2013Dataset
-    dataset_path = "/home/phoenix/Datasets/tid2013"
+    dataset_path = "/home/filip141/Datasets/TID2013"
     cnd_train = TID2013Dataset(data_path=dataset_path, new_resolution=None, patches="227x227", patches_method='random',
                                no_patches=1, is_train=True)
     cnd_test = TID2013Dataset(data_path=dataset_path, new_resolution=None, patches="227x227", patches_method='random',
@@ -126,12 +126,12 @@ if __name__ == '__main__':
     cnd_train = ImageIterator(cnd_train, preprocess='lcn')
     cnd_test = ImageIterator(cnd_test, preprocess='lcn')
     im_net_model = AlexNetModel(input_size=[227, 227, 3], output_size=1,
-                                log_path="/home/phoenix/tensor_logs/TID2013Db",
+                                log_path="/home/filip141/tensor_logs/TID2013Db_LCN",
                                 metrics=["mse"])
     im_net_model.build_model(loss=False, optimizer=False, model_classifier=True)
     im_net_model.set_optimizer("Momentum", use_nesterov=True)
     im_net_model.set_loss("mse")
-    im_net_model.model_compile(0.0004, decay=0.9, decay_steps=94, regularization="L2-bias", reg_lambda=0.0005,
+    im_net_model.model_compile(0.01, decay=0.9, decay_steps=188, regularization="L2-bias", reg_lambda=0.0005,
                                decay_type="inverse_time_decay")
     im_net_model.train(cnd_train, cnd_test, train_step=16, test_step=16, sample_per_epoch=188, restore_model=False,
-                       discrete_metric="SROCC", d_metric_steps=5, summary_step=5)
+                       discrete_metric="SROCC", d_metric_steps=5, summary_step=40)
