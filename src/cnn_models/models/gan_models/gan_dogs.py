@@ -83,10 +83,10 @@ if __name__ == '__main__':
     im_net_train = DogsDataset(data_path=train_path, labels_path=labels_path, class_names=class_names_path,
                                train_set=True, resize_img="64x64")
     gan = GANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 3],
-                     log_path="/home/filip/tensor_logs/GAN_DOGS", batch_size=64, labels='convo-semi-supervised',
+                     log_path="/home/filip/tensor_logs/GAN_DOGS", batch_size=32, labels='convo-semi-supervised',
                      labels_size=120)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.set_loss("js-non-saturation", label_smooth=True)
     gan.model_compile(generator_learning_rate=0.0004, discriminator_learning_rate=0.0002)
-    gan.train(im_net_train, train_step=64, epochs=300, sample_per_epoch=1000, restore_model=False)
+    gan.train(im_net_train, train_step=32, epochs=300, sample_per_epoch=1000, restore_model=False)
