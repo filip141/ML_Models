@@ -74,13 +74,14 @@ class GANNetwork(MMGANScheme):
 
 
 if __name__ == '__main__':
+    import getpass
     from cnn_models.iterators.celeba import CelebADataset
-
-    tf.set_random_seed(100)
-    train_path = "/home/filip141/Datasets/CelebA"
+    curr_username = getpass.getuser()
+    train_path = "/home/{}/Datasets/CelebA".format(curr_username)
+    log_path = "/home/{}/tensor_logs/GANQP_CelebA".format(curr_username)
     celeba = CelebADataset(data_path=train_path, resolution="64x64")
     gan = GANNetwork(generator_input_size=100, discriminator_input_size=[64, 64, 3],
-                     log_path="/home/filip141/tensor_logs/GANQP_CelebA", batch_size=64)
+                     log_path=log_path, batch_size=64)
     gan.set_discriminator_optimizer("Adam", beta_1=0.5)
     gan.set_generator_optimizer("Adam", beta_1=0.5)
     gan.set_loss("dragan", label_smooth=True, stdev=0.15)
