@@ -4,10 +4,37 @@ import copy
 import random
 import numpy as np
 import subprocess as sp
-
+from scipy.signal.windows import gaussian
+from scipy.signal.signaltools import convolve2d
 
 CIFAR10_LABELS = {"airplane": 0, "automobile": 1, "bird": 2, "cat": 3, "deer": 4, "dog": 5,
                   "frog": 6, "horse": 7, "ship": 8, "truck": 9}
+
+
+def lcn(x_in, kernel_shape=(15, 9)):
+    """Apply local contrast normalization to a 2D array.
+
+    Parameters
+    ----------
+    x_in : np.ndarray, ndim=2
+        Array to process.
+    kernel_shape : tuple, len=2
+        Shape of the Gaussian kernel.
+    Returns
+    -------
+    z_out : np.ndarray, ndim=2, shape=X.shape
+        Processed array.
+    """
+    kernel = [gaussian(k_dim, k_dim / 4.0, True) for k_dim in kernel_shape]
+    kernel = kernel[0].reshape(-1, 1) * kernel[1].reshape(1, -1)
+    kernel /= kernel.sum()
+    x_hat = convolve2d(x_in, kernel, mode='same', boundary='symm')
+    x_filt = x_in - x_hat
+    scalar = np.sqrt(convolve2d(np.power(x_filt, 2.0), kernel,
+                                mode='same', boundary='symm'))
+    scalar[scalar < scalar.mean()] = scalar.mean()
+    scalar[scalar == 0.0] = 1.0
+    return x_filt / scalar
 
 
 class ImageIterator(object):
@@ -39,6 +66,11 @@ class ImageIterator(object):
             stdev = stdev.repeat(ds_img_shape[1], axis=2)
             stdev = stdev.repeat(3, axis=3)
             return (batch_x - mean_x) / (stdev + eps)
+        elif self.preprocess == "lcn-lecun":
+            for image_idx in range(len(batch_x)):
+                for im_dim in range(3):
+                    batch_x[image_idx, :, :, im_dim] = lcn(batch_x[image_idx, :, :, im_dim])
+            return batch_x
         elif self.preprocess == "lcn":
             k_param = self.additional_data.get("k_param", 7)
             ds_img_shape = batch_x[0].shape
