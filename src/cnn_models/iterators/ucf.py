@@ -1,7 +1,9 @@
 import os
 import cv2
 import random
+import signal
 import numpy as np
+import subprocess as sp
 from cnn_models.iterators.tools import FFMPEGVideoReader
 
 import matplotlib.pyplot as plt
@@ -24,6 +26,15 @@ class UCF101(object):
     def get_categories(self):
         dirs_in_path = sorted(os.listdir(self.data_path))
         return dirs_in_path
+
+    def kill_all_by_name(self):
+        p = sp.Popen(['ps', '-A'], stdout=sp.PIPE)
+        out, err = p.communicate()
+        for line in out.splitlines():
+            iter_line = line.decode("utf-8").lstrip()
+            if "ffmpeg" in iter_line:
+                pid = int(iter_line.split(None, 1)[0])
+                os.kill(pid, signal.SIGKILL)
 
     def next_batch(self, number):
         batch_labels = np.zeros((number, self.categories_number))
@@ -53,10 +64,9 @@ class UCF101(object):
                 if frame is None:
                     continue
                 frame = cv2.resize(frame, tuple(self.resize), interpolation=cv2.INTER_AREA)
-                max_val = np.max(frame)
-                max_val = max_val if max_val != 0 else 1.0
-                batch_matrix[movie_idx, :, :, frame_idx, :] = frame / float(max_val)
+                batch_matrix[movie_idx, :, :, frame_idx, :] = frame / 255.
             ffmpeg.kill()
+        self.kill_all_by_name()
         return batch_matrix, batch_labels
 
 

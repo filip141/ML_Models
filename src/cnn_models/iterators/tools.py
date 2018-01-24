@@ -1,7 +1,9 @@
 import os
 import cv2
 import copy
+import time
 import random
+import signal
 import numpy as np
 import subprocess as sp
 from scipy.signal.windows import gaussian
@@ -155,7 +157,15 @@ class FFMPEGVideoReader(object):
                         '-pix_fmt', 'rgb24',
                         '-vcodec', 'rawvideo', '-']
         devnull = open(os.devnull, "w")
-        self.ffmpeg_pipe = sp.Popen(self.command, stdout=sp.PIPE, bufsize=10**8, stderr=devnull)
+        self.ffmpeg_pipe = self.open_ffmpeg_pipe(devnull)
+
+    def open_ffmpeg_pipe(self, devnull):
+        try:
+            ffmpeg_pipe = sp.Popen(self.command, stdout=sp.PIPE, bufsize=10**8, stderr=devnull)
+        except OSError:
+            time.sleep(1)
+            ffmpeg_pipe = self.open_ffmpeg_pipe(devnull)
+        return ffmpeg_pipe
 
     def length(self, fps):
         command = [self.ffmpeg_bin,
