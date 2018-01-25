@@ -42,6 +42,7 @@ class Video2JpegUCF(object):
                         break
                     frame = cv2.resize(frame, tuple(self.resize), interpolation=cv2.INTER_AREA)
                     im_path = os.path.join(video_images_dir, "{}.png".format(im_idx))
+                    print("Creating: {}".format(im_path))
                     mpimg.imsave(im_path, frame)
                     im_idx += 1
                 ffmpeg.kill()

@@ -187,7 +187,10 @@ class FFMPEGVideoReader(object):
         image = np.fromstring(raw_image, dtype='uint8')
         if image.size == 0:
             return None
-        image = image.reshape((self.resolution[1], self.resolution[0], 3))
+        try:
+            image = image.reshape((self.resolution[1], self.resolution[0], 3))
+        except ValueError:
+            return None
         self.ffmpeg_pipe.stdout.flush()
         return image
 
